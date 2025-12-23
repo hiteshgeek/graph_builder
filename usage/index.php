@@ -23,6 +23,30 @@ require_once __DIR__ . '/../includes/functions.php';
                 <p class="usage-subtitle">Usage Examples & Data Formats</p>
             </div>
             <div class="usage-header-actions">
+                <!-- View Mode Controls -->
+                <div class="usage-view-controls">
+                    <button class="usage-view-btn usage-view-btn--active" data-view="detailed" title="Show with data formats">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <line x1="3" y1="12" x2="21" y2="12"/>
+                            <line x1="12" y1="3" x2="12" y2="21"/>
+                        </svg>
+                    </button>
+                    <button class="usage-view-btn" data-view="compact" title="Charts only">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                        </svg>
+                    </button>
+                </div>
+                <!-- Grid Size Controls (visible in compact mode) -->
+                <div class="usage-grid-controls" style="display: none;">
+                    <button class="usage-grid-btn" data-cols="1" title="1 per row">1</button>
+                    <button class="usage-grid-btn usage-grid-btn--active" data-cols="2" title="2 per row">2</button>
+                    <button class="usage-grid-btn" data-cols="3" title="3 per row">3</button>
+                </div>
                 <div id="theme-switcher"></div>
                 <a href="<?= get_base_path() ?>/" class="usage-back-link">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
@@ -377,6 +401,103 @@ require_once __DIR__ . '/../includes/functions.php';
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
     <script>
+        // View Mode Controls
+        const VIEW_KEY = 'graphBuilder_usageView';
+        const COLS_KEY = 'graphBuilder_usageCols';
+        let currentView = 'detailed';
+        let currentCols = 2;
+
+        function initViewControls() {
+            // Load saved preferences
+            try {
+                currentView = localStorage.getItem(VIEW_KEY) || 'detailed';
+                currentCols = parseInt(localStorage.getItem(COLS_KEY)) || 2;
+            } catch (e) {}
+
+            // Apply initial state
+            applyViewMode(currentView);
+            applyGridCols(currentCols);
+
+            // View mode buttons
+            document.querySelectorAll('.usage-view-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const view = btn.dataset.view;
+                    setViewMode(view);
+                });
+            });
+
+            // Grid column buttons
+            document.querySelectorAll('.usage-grid-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const cols = parseInt(btn.dataset.cols);
+                    setGridCols(cols);
+                });
+            });
+        }
+
+        function setViewMode(view) {
+            currentView = view;
+            try {
+                localStorage.setItem(VIEW_KEY, view);
+            } catch (e) {}
+            applyViewMode(view);
+        }
+
+        function applyViewMode(view) {
+            const page = document.querySelector('.usage-page');
+            const gridControls = document.querySelector('.usage-grid-controls');
+
+            if (view === 'compact') {
+                page.classList.add('usage-page--compact');
+                gridControls.style.display = 'flex';
+                applyGridCols(currentCols);
+            } else {
+                page.classList.remove('usage-page--compact');
+                gridControls.style.display = 'none';
+                // Remove column data attribute in detailed mode
+                document.querySelectorAll('.usage-examples').forEach(el => {
+                    el.removeAttribute('data-cols');
+                });
+            }
+
+            // Update button states
+            document.querySelectorAll('.usage-view-btn').forEach(btn => {
+                btn.classList.toggle('usage-view-btn--active', btn.dataset.view === view);
+            });
+
+            // Resize charts after layout change
+            setTimeout(() => {
+                charts.forEach(chart => chart.resize());
+            }, 100);
+        }
+
+        function setGridCols(cols) {
+            currentCols = cols;
+            try {
+                localStorage.setItem(COLS_KEY, cols);
+            } catch (e) {}
+            applyGridCols(cols);
+        }
+
+        function applyGridCols(cols) {
+            // Only apply in compact mode
+            if (currentView !== 'compact') return;
+
+            document.querySelectorAll('.usage-examples').forEach(el => {
+                el.setAttribute('data-cols', cols);
+            });
+
+            // Update button states
+            document.querySelectorAll('.usage-grid-btn').forEach(btn => {
+                btn.classList.toggle('usage-grid-btn--active', parseInt(btn.dataset.cols) === cols);
+            });
+
+            // Resize charts after layout change
+            setTimeout(() => {
+                charts.forEach(chart => chart.resize());
+            }, 100);
+        }
+
         // Theme Switcher
         const THEME_KEY = 'graphBuilder_theme';
         let charts = [];
@@ -690,6 +811,9 @@ require_once __DIR__ . '/../includes/functions.php';
 
         // Initialize on DOM ready
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize view controls
+            initViewControls();
+
             // Create theme switcher
             createThemeSwitcher();
 

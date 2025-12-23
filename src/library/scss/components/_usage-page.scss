@@ -43,6 +43,51 @@
     gap: var(--gb-spacing-md);
 }
 
+// View Mode Controls
+.usage-view-controls,
+.usage-grid-controls {
+    @include flex-center;
+    gap: 2px;
+    padding: 2px;
+    background: var(--gb-bg-secondary);
+    border: 1px solid var(--gb-border-color);
+    border-radius: var(--gb-radius-md);
+}
+
+.usage-view-btn,
+.usage-grid-btn {
+    @include button-reset;
+    @include flex-center;
+    @include transition-fast;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--gb-radius-sm);
+    color: var(--gb-text-muted);
+    font-size: var(--gb-font-size-sm);
+    font-weight: 600;
+
+    &:hover {
+        background: var(--gb-bg-hover);
+        color: var(--gb-text-secondary);
+    }
+
+    &--active {
+        background: var(--gb-bg-primary);
+        color: var(--gb-primary);
+        box-shadow: var(--gb-shadow-sm);
+
+        &:hover {
+            background: var(--gb-bg-primary);
+            color: var(--gb-primary);
+        }
+    }
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
 .usage-back-link {
     @include flex-center;
     gap: var(--gb-spacing-xs);
@@ -104,6 +149,31 @@
     @media (max-width: 768px) {
         grid-template-columns: 1fr;
     }
+
+    // Compact mode grid columns
+    &[data-cols="1"] {
+        grid-template-columns: 1fr;
+    }
+
+    &[data-cols="2"] {
+        grid-template-columns: repeat(2, 1fr);
+
+        @media (max-width: 900px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    &[data-cols="3"] {
+        grid-template-columns: repeat(3, 1fr);
+
+        @media (max-width: 1200px) {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        @media (max-width: 768px) {
+            grid-template-columns: 1fr;
+        }
+    }
 }
 
 .usage-example {
@@ -142,6 +212,36 @@
     @media (max-width: 900px) {
         border-right: none;
         border-bottom: 1px solid var(--gb-border-color);
+    }
+}
+
+// Compact mode styles
+.usage-page--compact {
+    .usage-examples {
+        gap: var(--gb-spacing-lg);
+    }
+
+    .usage-example-content {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
+
+    .usage-data {
+        display: none;
+    }
+
+    .usage-chart {
+        min-height: 300px;
+        border-right: none;
+
+        // Adjust height based on columns
+        .usage-examples[data-cols="1"] & {
+            min-height: 400px;
+        }
+
+        .usage-examples[data-cols="3"] & {
+            min-height: 250px;
+        }
     }
 }
 

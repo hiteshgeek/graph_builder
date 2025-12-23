@@ -148,7 +148,7 @@
 // Fields section
 .gb-fields-section {
   flex: 1;
-  overflow: hidden;
+  overflow: auto;
   display: flex;
   flex-direction: column;
   border-top: 1px solid var(--gb-border-color);
