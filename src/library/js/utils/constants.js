@@ -5,8 +5,7 @@
 export const CHART_TYPES = {
     LINE: 'line',
     BAR: 'bar',
-    PIE: 'pie',
-    DONUT: 'donut'
+    PIE: 'pie'
 };
 
 export const EVENTS = {
@@ -40,7 +39,7 @@ export const DEFAULT_CONFIG = {
         subtitle: '',
         showLegend: true,
         legendPosition: 'top',
-        colors: [...DEFAULT_COLORS],
+        colors: [...DEFAULT_COLORS],  // Fixed palette, chart uses as many as needed
         animation: true
     },
     line: {
@@ -60,14 +59,9 @@ export const DEFAULT_CONFIG = {
     },
     pie: {
         radius: 70,
-        roseType: 'none',
-        labelPosition: 'outside',
-        showLabels: true,
-        showPercentage: true
-    },
-    donut: {
-        radius: 70,
-        innerRadius: 40,
+        innerRadius: 0,
+        borderRadius: 0,
+        padAngle: 0,
         roseType: 'none',
         labelPosition: 'outside',
         showLabels: true,

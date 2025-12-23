@@ -9,7 +9,7 @@ import {
 } from '../ui/FormControls.js';
 
 /**
- * PieConfig - Pie chart specific configuration
+ * PieConfig - Pie/Donut chart configuration with inner radius, border radius, and pad angle
  */
 class PieConfig extends BaseComponent {
     constructor(container) {
@@ -31,12 +31,48 @@ class PieConfig extends BaseComponent {
         // Size section
         this.controls.radius = createRange({
             name: 'radius',
-            label: 'Radius %',
+            label: 'Outer Radius %',
             value: config.radius || 70,
             min: 20,
             max: 100,
             step: 5,
             onChange: (value) => this.updateConfig({ radius: value })
+        });
+
+        this.controls.innerRadius = createRange({
+            name: 'innerRadius',
+            label: 'Inner Radius % (Donut)',
+            value: config.innerRadius || 0,
+            min: 0,
+            max: 80,
+            step: 5,
+            onChange: (value) => this.updateConfig({ innerRadius: value })
+        });
+
+        const sizeSection = createFormSection('Size', [
+            this.controls.radius,
+            this.controls.innerRadius
+        ]);
+
+        // Style section
+        this.controls.borderRadius = createRange({
+            name: 'borderRadius',
+            label: 'Border Radius',
+            value: config.borderRadius || 0,
+            min: 0,
+            max: 20,
+            step: 1,
+            onChange: (value) => this.updateConfig({ borderRadius: value })
+        });
+
+        this.controls.padAngle = createRange({
+            name: 'padAngle',
+            label: 'Pad Angle',
+            value: config.padAngle || 0,
+            min: 0,
+            max: 10,
+            step: 0.5,
+            onChange: (value) => this.updateConfig({ padAngle: value })
         });
 
         this.controls.roseType = createSelect({
@@ -51,8 +87,9 @@ class PieConfig extends BaseComponent {
             onChange: (value) => this.updateConfig({ roseType: value })
         });
 
-        const sizeSection = createFormSection('Size & Shape', [
-            this.controls.radius,
+        const styleSection = createFormSection('Style', [
+            this.controls.borderRadius,
+            this.controls.padAngle,
             this.controls.roseType
         ]);
 
@@ -90,6 +127,7 @@ class PieConfig extends BaseComponent {
         ]);
 
         this.element.appendChild(sizeSection);
+        this.element.appendChild(styleSection);
         this.element.appendChild(labelSection);
 
         this.container.appendChild(this.element);
@@ -107,6 +145,9 @@ class PieConfig extends BaseComponent {
     getValues() {
         return {
             radius: this.controls.radius?.getValue() || 70,
+            innerRadius: this.controls.innerRadius?.getValue() || 0,
+            borderRadius: this.controls.borderRadius?.getValue() || 0,
+            padAngle: this.controls.padAngle?.getValue() || 0,
             roseType: this.controls.roseType?.getValue() || 'none',
             showLabels: this.controls.showLabels?.getValue() ?? true,
             showPercentage: this.controls.showPercentage?.getValue() ?? true,
@@ -116,6 +157,9 @@ class PieConfig extends BaseComponent {
 
     setValues(config) {
         if (this.controls.radius) this.controls.radius.setValue(config.radius || 70);
+        if (this.controls.innerRadius) this.controls.innerRadius.setValue(config.innerRadius || 0);
+        if (this.controls.borderRadius) this.controls.borderRadius.setValue(config.borderRadius || 0);
+        if (this.controls.padAngle) this.controls.padAngle.setValue(config.padAngle || 0);
         if (this.controls.roseType) this.controls.roseType.setValue(config.roseType || 'none');
         if (this.controls.showLabels) this.controls.showLabels.setValue(config.showLabels !== false);
         if (this.controls.showPercentage) this.controls.showPercentage.setValue(config.showPercentage !== false);

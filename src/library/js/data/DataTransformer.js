@@ -58,7 +58,7 @@ class DataTransformer {
     }
 
     /**
-     * Transform for pie/donut charts (name + value pairs)
+     * Transform for pie charts (name + value pairs)
      * @param {Array} rawData
      * @param {Object} options
      * @returns {Array}
@@ -88,7 +88,6 @@ class DataTransformer {
 
         switch (chartType) {
             case CHART_TYPES.PIE:
-            case CHART_TYPES.DONUT:
                 return this.toPie(rawData, options);
 
             case CHART_TYPES.LINE:

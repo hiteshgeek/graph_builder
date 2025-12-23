@@ -28,12 +28,6 @@ const DEMO_DATA = {
         { name: 'Food', value: 180 },
         { name: 'Books', value: 125 },
         { name: 'Other', value: 90 }
-    ],
-    [CHART_TYPES.DONUT]: [
-        { name: 'Desktop', value: 45 },
-        { name: 'Mobile', value: 35 },
-        { name: 'Tablet', value: 15 },
-        { name: 'Other', value: 5 }
     ]
 };
 
@@ -108,9 +102,10 @@ class PreviewPanel extends BaseComponent {
         this.chart = ChartFactory.create(type, this.chartContainer);
         this.chart.init();
 
-        // Apply current config
+        // Apply current config with dataMapping
         const config = stateManager.getConfig();
-        this.chart.setConfig(config);
+        const dataMapping = stateManager.getDataMapping();
+        this.chart.setConfig({ ...config, dataMapping });
     }
 
     getDemoData(chartType) {
@@ -149,6 +144,7 @@ class PreviewPanel extends BaseComponent {
         const rawData = stateManager.getData();
         const chartType = stateManager.getChartType();
         const config = stateManager.getConfig();
+        const dataMapping = stateManager.getDataMapping();
 
         if (!rawData || rawData.length === 0) {
             this.isUsingDemoData = true;
@@ -162,7 +158,7 @@ class PreviewPanel extends BaseComponent {
         // Transform data based on chart type
         const transformedData = DataTransformer.transform(rawData, chartType);
 
-        this.chart.setConfig(config);
+        this.chart.setConfig({ ...config, dataMapping });
         this.chart.setData(transformedData);
     }
 
@@ -183,15 +179,16 @@ class PreviewPanel extends BaseComponent {
     onConfigUpdate() {
         if (!this.chart) return;
         const config = stateManager.getConfig();
+        const dataMapping = stateManager.getDataMapping();
 
         if (this.isUsingDemoData) {
-            const demoConfig = { ...config };
+            const demoConfig = { ...config, dataMapping };
             if (!demoConfig.base.title) {
                 demoConfig.base = { ...demoConfig.base, title: 'Demo Preview' };
             }
             this.chart.setConfig(demoConfig);
         } else {
-            this.chart.setConfig(config);
+            this.chart.setConfig({ ...config, dataMapping });
         }
 
         this.chart.render();

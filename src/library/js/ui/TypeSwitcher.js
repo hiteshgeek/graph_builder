@@ -67,10 +67,6 @@ class TypeSwitcher extends BaseComponent {
                 <circle cx="12" cy="12" r="9"></circle>
                 <line x1="12" y1="12" x2="12" y2="3"></line>
                 <line x1="12" y1="12" x2="20" y2="15"></line>
-            </svg>`,
-            [CHART_TYPES.DONUT]: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="9"></circle>
-                <circle cx="12" cy="12" r="4"></circle>
             </svg>`
         };
         return icons[type] || '';
@@ -80,8 +76,7 @@ class TypeSwitcher extends BaseComponent {
         const labels = {
             [CHART_TYPES.LINE]: 'Line',
             [CHART_TYPES.BAR]: 'Bar',
-            [CHART_TYPES.PIE]: 'Pie',
-            [CHART_TYPES.DONUT]: 'Donut'
+            [CHART_TYPES.PIE]: 'Pie'
         };
         return labels[type] || type;
     }

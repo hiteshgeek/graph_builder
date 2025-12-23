@@ -9,8 +9,7 @@ class LineChart extends BaseChart {
     }
 
     /**
-     * Transform data for line chart
-     * Expects data in format: [{ category: 'X', series1: value, series2: value }]
+     * Transform data for line chart using dataMapping
      * @param {Array} rawData
      * @returns {Object}
      */
@@ -33,14 +32,19 @@ class LineChart extends BaseChart {
             };
         }
 
+        const mapping = this.config.dataMapping || {};
         const columns = Object.keys(rawData[0]);
-        const categoryColumn = columns[0];
-        const valueColumns = columns.slice(1);
 
-        const categories = rawData.map(row => row[categoryColumn]);
+        // Use mapping or fallback to first column as X, rest as Y
+        const xAxisColumn = mapping.xAxis || columns[0];
+        let yAxisColumns = mapping.yAxis && mapping.yAxis.length > 0
+            ? mapping.yAxis
+            : columns.filter(c => c !== xAxisColumn);
+
+        const categories = rawData.map(row => row[xAxisColumn]);
         const typeConfig = this.config.line || {};
 
-        const series = valueColumns.map(col => ({
+        const series = yAxisColumns.map(col => ({
             name: col,
             type: 'line',
             data: rawData.map(row => row[col]),

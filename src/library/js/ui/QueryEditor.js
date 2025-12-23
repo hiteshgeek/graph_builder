@@ -115,9 +115,12 @@ class QueryEditor extends BaseComponent {
             this.codeElement.textContent = displayCode;
             this.codeElement.className = 'language-sql';
             window.hljs.highlightElement(this.codeElement);
+            // Add hljs-active class to make textarea text transparent
+            this.element.classList.add('hljs-active');
         } else {
             // Fallback: just display plain text
             this.codeElement.textContent = displayCode;
+            this.element.classList.remove('hljs-active');
         }
     }
 

@@ -1,7 +1,7 @@
 import { BaseChart } from './BaseChart.js';
 
 /**
- * PieChart - Basic pie chart implementation
+ * PieChart - Pie/Donut chart implementation with border radius and pad angle support
  */
 class PieChart extends BaseChart {
     getSeriesType() {
@@ -9,9 +9,7 @@ class PieChart extends BaseChart {
     }
 
     /**
-     * Transform data for pie chart
-     * Expects data in format: [{ name: 'Label', value: number }]
-     * Or: [{ category: 'Label', value: number }]
+     * Transform data for pie chart using dataMapping
      * @param {Array} rawData
      * @returns {Object}
      */
@@ -20,18 +18,23 @@ class PieChart extends BaseChart {
             return { series: [] };
         }
 
+        const mapping = this.config.dataMapping || {};
         const columns = Object.keys(rawData[0]);
-        const nameColumn = columns.find(c => c.toLowerCase() === 'name') || columns[0];
-        const valueColumn = columns.find(c => c.toLowerCase() === 'value') || columns[1];
+
+        // Use mapping or fallback to auto-detect
+        const nameColumn = mapping.nameField || columns.find(c => c.toLowerCase() === 'name') || columns[0];
+        const valueColumn = mapping.valueField || columns.find(c => c.toLowerCase() === 'value') || columns[1];
 
         const pieData = rawData.map(row => ({
             name: row[nameColumn],
             value: parseFloat(row[valueColumn]) || 0
         }));
 
-        const typeConfig = this.config.pie || this.config.donut || {};
-        const innerRadius = this.getInnerRadius();
+        const typeConfig = this.config.pie || {};
         const outerRadius = typeConfig.radius || 70;
+        const innerRadius = typeConfig.innerRadius || 0;
+        const borderRadius = typeConfig.borderRadius || 0;
+        const padAngle = typeConfig.padAngle || 0;
 
         return {
             series: [{
@@ -39,6 +42,10 @@ class PieChart extends BaseChart {
                 radius: [`${innerRadius}%`, `${outerRadius}%`],
                 center: ['50%', '55%'],
                 roseType: typeConfig.roseType !== 'none' ? typeConfig.roseType : false,
+                padAngle: padAngle,
+                itemStyle: {
+                    borderRadius: borderRadius
+                },
                 data: pieData,
                 label: this.getLabelConfig(typeConfig),
                 labelLine: {
@@ -53,14 +60,6 @@ class PieChart extends BaseChart {
                 }
             }]
         };
-    }
-
-    /**
-     * Get inner radius for pie (0) or donut (configurable)
-     * @returns {number}
-     */
-    getInnerRadius() {
-        return 0;
     }
 
     /**
@@ -93,32 +92,42 @@ class PieChart extends BaseChart {
     }
 
     setRadius(value) {
-        const configKey = this.getSeriesType() === 'pie' ? 'pie' : 'donut';
-        this.config[configKey] = { ...this.config[configKey], radius: value };
+        this.config.pie = { ...this.config.pie, radius: value };
+        this.render();
+    }
+
+    setInnerRadius(value) {
+        this.config.pie = { ...this.config.pie, innerRadius: value };
+        this.render();
+    }
+
+    setBorderRadius(value) {
+        this.config.pie = { ...this.config.pie, borderRadius: value };
+        this.render();
+    }
+
+    setPadAngle(value) {
+        this.config.pie = { ...this.config.pie, padAngle: value };
         this.render();
     }
 
     setRoseType(type) {
-        const configKey = this.getSeriesType() === 'pie' ? 'pie' : 'donut';
-        this.config[configKey] = { ...this.config[configKey], roseType: type };
+        this.config.pie = { ...this.config.pie, roseType: type };
         this.render();
     }
 
     setLabelPosition(position) {
-        const configKey = this.getSeriesType() === 'pie' ? 'pie' : 'donut';
-        this.config[configKey] = { ...this.config[configKey], labelPosition: position };
+        this.config.pie = { ...this.config.pie, labelPosition: position };
         this.render();
     }
 
     setShowLabels(show) {
-        const configKey = this.getSeriesType() === 'pie' ? 'pie' : 'donut';
-        this.config[configKey] = { ...this.config[configKey], showLabels: show };
+        this.config.pie = { ...this.config.pie, showLabels: show };
         this.render();
     }
 
     setShowPercentage(show) {
-        const configKey = this.getSeriesType() === 'pie' ? 'pie' : 'donut';
-        this.config[configKey] = { ...this.config[configKey], showPercentage: show };
+        this.config.pie = { ...this.config.pie, showPercentage: show };
         this.render();
     }
 }

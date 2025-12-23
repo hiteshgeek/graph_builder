@@ -189,13 +189,16 @@ class BaseChart {
 
     /**
      * Get color configuration
+     * Uses colors from palette - ECharts automatically cycles through them as needed
      * @param {Object} config
      * @returns {Object}
      */
     getColorOption(config) {
-        return {
-            color: config.colors || undefined
-        };
+        // Use colors from config palette - ECharts will cycle through them
+        if (config.colors && config.colors.length > 0) {
+            return { color: config.colors };
+        }
+        return {};
     }
 
     /**

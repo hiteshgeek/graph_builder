@@ -13,7 +13,6 @@ export { BaseChart } from './charts/BaseChart.js';
 export { LineChart } from './charts/LineChart.js';
 export { BarChart } from './charts/BarChart.js';
 export { PieChart } from './charts/PieChart.js';
-export { DonutChart } from './charts/DonutChart.js';
 export { ChartFactory, CHART_CLASSES } from './charts/ChartFactory.js';
 
 // Configuration
@@ -21,7 +20,6 @@ export { BaseConfig } from './config/BaseConfig.js';
 export { LineConfig } from './config/LineConfig.js';
 export { BarConfig } from './config/BarConfig.js';
 export { PieConfig } from './config/PieConfig.js';
-export { DonutConfig } from './config/DonutConfig.js';
 export { ConfigFactory, CONFIG_CLASSES } from './config/ConfigFactory.js';
 
 // UI Components

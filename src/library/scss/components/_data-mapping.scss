@@ -1,0 +1,79 @@
+@use '../abstracts/mixins' as *;
+
+.gb-data-mapping {
+    @include flex-column;
+    background: var(--gb-bg-secondary);
+    border-radius: var(--gb-radius-md);
+    overflow: hidden;
+}
+
+.gb-data-mapping-header {
+    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+    background: var(--gb-bg-tertiary);
+    border-bottom: 1px solid var(--gb-border-color);
+}
+
+.gb-data-mapping-title {
+    font-size: var(--gb-font-size-sm);
+    font-weight: 600;
+    color: var(--gb-text-primary);
+}
+
+.gb-data-mapping-content {
+    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+    max-height: 200px;
+    overflow-y: auto;
+    @include custom-scrollbar;
+}
+
+.gb-data-mapping-hint {
+    font-size: var(--gb-font-size-xs);
+    color: var(--gb-text-muted);
+    text-align: center;
+    padding: var(--gb-spacing-md);
+}
+
+// Y-Axis checkboxes list
+.gb-yaxis-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gb-spacing-xs);
+    max-height: 120px;
+    overflow-y: auto;
+    padding: var(--gb-spacing-xs);
+    background: var(--gb-bg-primary);
+    border: 1px solid var(--gb-border-color);
+    border-radius: var(--gb-radius-sm);
+    @include custom-scrollbar;
+}
+
+.gb-yaxis-item {
+    display: flex;
+    align-items: center;
+    gap: var(--gb-spacing-xs);
+    padding: var(--gb-spacing-xs);
+    cursor: pointer;
+    border-radius: var(--gb-radius-sm);
+    @include transition-fast;
+
+    &:hover {
+        background: var(--gb-bg-secondary);
+    }
+
+    input[type="checkbox"] {
+        width: 14px;
+        height: 14px;
+        cursor: pointer;
+        accent-color: var(--gb-primary);
+    }
+
+    span {
+        font-size: var(--gb-font-size-xs);
+        color: var(--gb-text-primary);
+    }
+}
+
+// Wrapper in graph builder
+.gb-data-mapping-wrapper {
+    flex-shrink: 0;
+}

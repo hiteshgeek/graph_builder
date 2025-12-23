@@ -1,14 +1,12 @@
 import { LineChart } from './LineChart.js';
 import { BarChart } from './BarChart.js';
 import { PieChart } from './PieChart.js';
-import { DonutChart } from './DonutChart.js';
 import { CHART_TYPES } from '../utils/constants.js';
 
 const CHART_CLASSES = {
     [CHART_TYPES.LINE]: LineChart,
     [CHART_TYPES.BAR]: BarChart,
-    [CHART_TYPES.PIE]: PieChart,
-    [CHART_TYPES.DONUT]: DonutChart
+    [CHART_TYPES.PIE]: PieChart
 };
 
 /**

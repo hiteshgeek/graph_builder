@@ -17,12 +17,19 @@ class StateManager {
             query: '',
             data: [],
             columns: [],
+            dataMapping: {
+                // For line/bar charts
+                xAxis: null,      // Column name for X-axis (category)
+                yAxis: [],        // Column names for Y-axis (values/series)
+                // For pie charts
+                nameField: null,  // Column name for slice names
+                valueField: null  // Column name for slice values
+            },
             config: {
                 base: { ...DEFAULT_CONFIG.base },
                 line: { ...DEFAULT_CONFIG.line },
                 bar: { ...DEFAULT_CONFIG.bar },
-                pie: { ...DEFAULT_CONFIG.pie },
-                donut: { ...DEFAULT_CONFIG.donut }
+                pie: { ...DEFAULT_CONFIG.pie }
             }
         };
     }
@@ -73,6 +80,10 @@ class StateManager {
         return this.state.config[chartType] || {};
     }
 
+    getDataMapping() {
+        return this.state.dataMapping;
+    }
+
     // Specific setters
     setChartType(type) {
         if (this.state.chartType !== type) {
@@ -90,8 +101,30 @@ class StateManager {
     setData(data, columns = []) {
         this.state.data = data;
         this.state.columns = columns;
+        // Auto-set default mapping if not set
+        if (columns.length > 0 && !this.state.dataMapping.xAxis) {
+            this.autoSetDataMapping(columns);
+        }
         this.saveToStorage();
         eventBus.emit(EVENTS.QUERY_EXECUTED, { data, columns });
+    }
+
+    setDataMapping(mapping) {
+        this.state.dataMapping = { ...this.state.dataMapping, ...mapping };
+        this.saveToStorage();
+        eventBus.emit(EVENTS.CONFIG_UPDATED, { dataMapping: this.state.dataMapping });
+    }
+
+    autoSetDataMapping(columns) {
+        // Auto-detect: first column as X-axis/name, rest as Y-axis/value
+        const xAxis = columns[0];
+        const yAxis = columns.slice(1);
+        this.state.dataMapping = {
+            xAxis,
+            yAxis,
+            nameField: columns[0],
+            valueField: columns[1] || null
+        };
     }
 
     setBaseConfig(config) {
@@ -114,6 +147,7 @@ class StateManager {
             const dataToSave = {
                 chartType: this.state.chartType,
                 query: this.state.query,
+                dataMapping: this.state.dataMapping,
                 config: this.state.config
             };
             localStorage.setItem(this.storageKey, JSON.stringify(dataToSave));
@@ -131,6 +165,7 @@ class StateManager {
                     ...this.state,
                     chartType: parsed.chartType || this.state.chartType,
                     query: parsed.query || '',
+                    dataMapping: parsed.dataMapping || this.state.dataMapping,
                     config: this.mergeConfig(this.state.config, parsed.config || {})
                 };
             }

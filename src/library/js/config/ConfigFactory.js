@@ -1,14 +1,12 @@
 import { LineConfig } from './LineConfig.js';
 import { BarConfig } from './BarConfig.js';
 import { PieConfig } from './PieConfig.js';
-import { DonutConfig } from './DonutConfig.js';
 import { CHART_TYPES } from '../utils/constants.js';
 
 const CONFIG_CLASSES = {
     [CHART_TYPES.LINE]: LineConfig,
     [CHART_TYPES.BAR]: BarConfig,
-    [CHART_TYPES.PIE]: PieConfig,
-    [CHART_TYPES.DONUT]: DonutConfig
+    [CHART_TYPES.PIE]: PieConfig
 };
 
 /**

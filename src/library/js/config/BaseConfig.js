@@ -76,11 +76,11 @@ class BaseConfig extends BaseComponent {
             this.controls.legendPosition
         ]);
 
-        // Colors section
+        // Colors section - always visible, fixed palette size
         this.controls.colors = createColorPalette({
             name: 'colors',
             label: 'Color Palette',
-            colors: config.colors || DEFAULT_COLORS,
+            colors: config.colors?.length ? config.colors : DEFAULT_COLORS,
             onChange: (value) => this.updateConfig({ colors: value })
         });
 
@@ -133,7 +133,7 @@ class BaseConfig extends BaseComponent {
         if (this.controls.subtitle) this.controls.subtitle.setValue(config.subtitle || '');
         if (this.controls.showLegend) this.controls.showLegend.setValue(config.showLegend !== false);
         if (this.controls.legendPosition) this.controls.legendPosition.setValue(config.legendPosition || 'top');
-        if (this.controls.colors) this.controls.colors.setValue(config.colors || DEFAULT_COLORS);
+        if (this.controls.colors) this.controls.colors.setValue(config.colors?.length ? config.colors : DEFAULT_COLORS);
         if (this.controls.animation) this.controls.animation.setValue(config.animation !== false);
     }
 }
