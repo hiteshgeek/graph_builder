@@ -2,8 +2,10 @@
 
 // Form group
 .gb-form-group {
-    @include flex-column;
+    display: flex;
+    flex-direction: column;
     gap: var(--gb-spacing-xs);
+    width: 100%;
 }
 
 .gb-form-group--checkbox {
@@ -31,6 +33,7 @@
 // Text input
 .gb-form-input {
     @include transition-fast;
+    width: 100%;
     padding: var(--gb-spacing-sm) var(--gb-spacing-md);
     background: var(--gb-bg-secondary);
     border: 1px solid var(--gb-border-color);

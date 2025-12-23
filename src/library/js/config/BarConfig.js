@@ -4,6 +4,7 @@ import { EVENTS, CHART_TYPES } from '../utils/constants.js';
 import {
     createCheckbox,
     createRange,
+    createTextInput,
     createFormSection
 } from '../ui/FormControls.js';
 
@@ -83,8 +84,31 @@ class BarConfig extends BaseComponent {
             this.controls.borderRadius
         ]);
 
+        // Axis Labels section
+        this.controls.xAxisLabel = createTextInput({
+            name: 'xAxisLabel',
+            label: 'X-Axis Label',
+            value: config.xAxisLabel || '',
+            placeholder: 'e.g., Categories',
+            onChange: (value) => this.updateConfig({ xAxisLabel: value })
+        });
+
+        this.controls.yAxisLabel = createTextInput({
+            name: 'yAxisLabel',
+            label: 'Y-Axis Label',
+            value: config.yAxisLabel || '',
+            placeholder: 'e.g., Values',
+            onChange: (value) => this.updateConfig({ yAxisLabel: value })
+        });
+
+        const axisSection = createFormSection('Axis Labels', [
+            this.controls.xAxisLabel,
+            this.controls.yAxisLabel
+        ]);
+
         this.element.appendChild(layoutSection);
         this.element.appendChild(styleSection);
+        this.element.appendChild(axisSection);
 
         this.container.appendChild(this.element);
     }
@@ -104,7 +128,9 @@ class BarConfig extends BaseComponent {
             stacked: this.controls.stacked?.getValue() || false,
             barWidth: this.controls.barWidth?.getValue() || 60,
             barGap: this.controls.barGap?.getValue() || 30,
-            borderRadius: this.controls.borderRadius?.getValue() || 0
+            borderRadius: this.controls.borderRadius?.getValue() || 0,
+            xAxisLabel: this.controls.xAxisLabel?.getValue() || '',
+            yAxisLabel: this.controls.yAxisLabel?.getValue() || ''
         };
     }
 
@@ -114,6 +140,8 @@ class BarConfig extends BaseComponent {
         if (this.controls.barWidth) this.controls.barWidth.setValue(config.barWidth || 60);
         if (this.controls.barGap) this.controls.barGap.setValue(config.barGap || 30);
         if (this.controls.borderRadius) this.controls.borderRadius.setValue(config.borderRadius || 0);
+        if (this.controls.xAxisLabel) this.controls.xAxisLabel.setValue(config.xAxisLabel || '');
+        if (this.controls.yAxisLabel) this.controls.yAxisLabel.setValue(config.yAxisLabel || '');
     }
 }
 

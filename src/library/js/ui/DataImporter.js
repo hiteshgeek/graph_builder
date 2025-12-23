@@ -184,8 +184,8 @@ class DataImporter extends BaseComponent {
         const wrapper = this.createElement('div', { className: 'gb-import-form' });
 
         // File upload
-        const fileGroup = this.createElement('div', { className: 'gb-form-group' });
-        const fileLabel = this.createElement('label', { className: 'gb-form-label' }, 'Upload JSON File');
+        const fileGroup = this.createElement('div', { className: 'gb-import-form-group' });
+        const fileLabel = this.createElement('label', { className: 'gb-import-form-label' }, 'Upload JSON File');
         const fileInput = this.createElement('input', {
             type: 'file',
             accept: '.json,application/json',
@@ -199,8 +199,8 @@ class DataImporter extends BaseComponent {
         const divider = this.createElement('div', { className: 'gb-import-divider' }, 'or paste JSON directly');
 
         // Textarea
-        const textGroup = this.createElement('div', { className: 'gb-form-group' });
-        const textLabel = this.createElement('label', { className: 'gb-form-label' }, 'JSON Data');
+        const textGroup = this.createElement('div', { className: 'gb-import-form-group' });
+        const textLabel = this.createElement('label', { className: 'gb-import-form-label' }, 'JSON Data');
         const textarea = this.createElement('textarea', {
             className: 'gb-import-textarea',
             placeholder: `[
@@ -224,8 +224,8 @@ class DataImporter extends BaseComponent {
         const wrapper = this.createElement('div', { className: 'gb-import-form' });
 
         // File upload
-        const fileGroup = this.createElement('div', { className: 'gb-form-group' });
-        const fileLabel = this.createElement('label', { className: 'gb-form-label' }, 'Upload CSV File');
+        const fileGroup = this.createElement('div', { className: 'gb-import-form-group' });
+        const fileLabel = this.createElement('label', { className: 'gb-import-form-label' }, 'Upload CSV File');
         const fileInput = this.createElement('input', {
             type: 'file',
             accept: '.csv,text/csv',
@@ -239,8 +239,8 @@ class DataImporter extends BaseComponent {
         const divider = this.createElement('div', { className: 'gb-import-divider' }, 'or paste CSV directly');
 
         // Textarea
-        const textGroup = this.createElement('div', { className: 'gb-form-group' });
-        const textLabel = this.createElement('label', { className: 'gb-form-label' }, 'CSV Data');
+        const textGroup = this.createElement('div', { className: 'gb-import-form-group' });
+        const textLabel = this.createElement('label', { className: 'gb-import-form-label' }, 'CSV Data');
         const textarea = this.createElement('textarea', {
             className: 'gb-import-textarea',
             placeholder: `name,value
@@ -254,17 +254,17 @@ Product C,150`,
         textGroup.appendChild(textarea);
 
         // Options
-        const optionsGroup = this.createElement('div', { className: 'gb-form-group gb-form-row' });
+        const optionsGroup = this.createElement('div', { className: 'gb-import-form-group gb-import-form-row' });
 
-        const delimiterLabel = this.createElement('label', { className: 'gb-form-label-inline' }, 'Delimiter:');
-        const delimiterSelect = this.createElement('select', { className: 'gb-form-select' });
+        const delimiterLabel = this.createElement('label', { className: 'gb-import-form-label-inline' }, 'Delimiter:');
+        const delimiterSelect = this.createElement('select', { className: 'gb-import-form-select' });
         [',', ';', '\t', '|'].forEach(d => {
             const opt = this.createElement('option', { value: d }, d === '\t' ? 'Tab' : d);
             delimiterSelect.appendChild(opt);
         });
         this.csvDelimiter = delimiterSelect;
 
-        const headerCheck = this.createElement('label', { className: 'gb-form-checkbox' });
+        const headerCheck = this.createElement('label', { className: 'gb-import-form-checkbox' });
         const headerInput = this.createElement('input', { type: 'checkbox', checked: true });
         this.csvHasHeader = headerInput;
         headerCheck.appendChild(headerInput);
@@ -285,8 +285,8 @@ Product C,150`,
         const wrapper = this.createElement('div', { className: 'gb-import-form' });
 
         // File upload
-        const fileGroup = this.createElement('div', { className: 'gb-form-group' });
-        const fileLabel = this.createElement('label', { className: 'gb-form-label' }, 'Upload Excel File (.xlsx, .xls)');
+        const fileGroup = this.createElement('div', { className: 'gb-import-form-group' });
+        const fileLabel = this.createElement('label', { className: 'gb-import-form-label' }, 'Upload Excel File (.xlsx, .xls)');
         const fileInput = this.createElement('input', {
             type: 'file',
             accept: '.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel',
@@ -298,17 +298,17 @@ Product C,150`,
         fileGroup.appendChild(fileInput);
 
         // Sheet selection (populated after file load)
-        const sheetGroup = this.createElement('div', { className: 'gb-form-group', style: 'display: none;' });
-        const sheetLabel = this.createElement('label', { className: 'gb-form-label' }, 'Select Sheet');
-        const sheetSelect = this.createElement('select', { className: 'gb-form-select' });
+        const sheetGroup = this.createElement('div', { className: 'gb-import-form-group', style: 'display: none;' });
+        const sheetLabel = this.createElement('label', { className: 'gb-import-form-label' }, 'Select Sheet');
+        const sheetSelect = this.createElement('select', { className: 'gb-import-form-select' });
         this.excelSheetSelect = sheetSelect;
         this.excelSheetGroup = sheetGroup;
         sheetGroup.appendChild(sheetLabel);
         sheetGroup.appendChild(sheetSelect);
 
         // Options
-        const optionsGroup = this.createElement('div', { className: 'gb-form-group' });
-        const headerCheck = this.createElement('label', { className: 'gb-form-checkbox' });
+        const optionsGroup = this.createElement('div', { className: 'gb-import-form-group' });
+        const headerCheck = this.createElement('label', { className: 'gb-import-form-checkbox' });
         const headerInput = this.createElement('input', { type: 'checkbox', checked: true });
         this.excelHasHeader = headerInput;
         headerCheck.appendChild(headerInput);
@@ -331,8 +331,8 @@ Product C,150`,
         const wrapper = this.createElement('div', { className: 'gb-import-form' });
 
         // Textarea
-        const textGroup = this.createElement('div', { className: 'gb-form-group' });
-        const textLabel = this.createElement('label', { className: 'gb-form-label' }, 'PHP Array (will be converted to JSON)');
+        const textGroup = this.createElement('div', { className: 'gb-import-form-group' });
+        const textLabel = this.createElement('label', { className: 'gb-import-form-label' }, 'PHP Array (will be converted to JSON)');
         const textarea = this.createElement('textarea', {
             className: 'gb-import-textarea',
             placeholder: `[
@@ -364,11 +364,11 @@ Product C,150`,
         const wrapper = this.createElement('div', { className: 'gb-import-form' });
 
         // URL input
-        const urlGroup = this.createElement('div', { className: 'gb-form-group' });
-        const urlLabel = this.createElement('label', { className: 'gb-form-label' }, 'API Endpoint URL');
+        const urlGroup = this.createElement('div', { className: 'gb-import-form-group' });
+        const urlLabel = this.createElement('label', { className: 'gb-import-form-label' }, 'API Endpoint URL');
         const urlInput = this.createElement('input', {
             type: 'url',
-            className: 'gb-form-input',
+            className: 'gb-import-form-input',
             placeholder: 'https://api.example.com/data'
         });
         this.apiUrlInput = urlInput;
@@ -376,9 +376,9 @@ Product C,150`,
         urlGroup.appendChild(urlInput);
 
         // Method
-        const methodGroup = this.createElement('div', { className: 'gb-form-group' });
-        const methodLabel = this.createElement('label', { className: 'gb-form-label' }, 'HTTP Method');
-        const methodSelect = this.createElement('select', { className: 'gb-form-select' });
+        const methodGroup = this.createElement('div', { className: 'gb-import-form-group' });
+        const methodLabel = this.createElement('label', { className: 'gb-import-form-label' }, 'HTTP Method');
+        const methodSelect = this.createElement('select', { className: 'gb-import-form-select' });
         ['GET', 'POST'].forEach(m => {
             const opt = this.createElement('option', { value: m }, m);
             methodSelect.appendChild(opt);
@@ -388,8 +388,8 @@ Product C,150`,
         methodGroup.appendChild(methodSelect);
 
         // Headers
-        const headersGroup = this.createElement('div', { className: 'gb-form-group' });
-        const headersLabel = this.createElement('label', { className: 'gb-form-label' }, 'Headers (JSON)');
+        const headersGroup = this.createElement('div', { className: 'gb-import-form-group' });
+        const headersLabel = this.createElement('label', { className: 'gb-import-form-label' }, 'Headers (JSON)');
         const headersTextarea = this.createElement('textarea', {
             className: 'gb-import-textarea gb-import-textarea--small',
             placeholder: `{
@@ -403,8 +403,8 @@ Product C,150`,
         headersGroup.appendChild(headersTextarea);
 
         // Body (for POST)
-        const bodyGroup = this.createElement('div', { className: 'gb-form-group' });
-        const bodyLabel = this.createElement('label', { className: 'gb-form-label' }, 'Request Body (for POST)');
+        const bodyGroup = this.createElement('div', { className: 'gb-import-form-group' });
+        const bodyLabel = this.createElement('label', { className: 'gb-import-form-label' }, 'Request Body (for POST)');
         const bodyTextarea = this.createElement('textarea', {
             className: 'gb-import-textarea gb-import-textarea--small',
             placeholder: '{ "query": "..." }',
@@ -415,11 +415,11 @@ Product C,150`,
         bodyGroup.appendChild(bodyTextarea);
 
         // Data path
-        const pathGroup = this.createElement('div', { className: 'gb-form-group' });
-        const pathLabel = this.createElement('label', { className: 'gb-form-label' }, 'Data Path (optional)');
+        const pathGroup = this.createElement('div', { className: 'gb-import-form-group' });
+        const pathLabel = this.createElement('label', { className: 'gb-import-form-label' }, 'Data Path (optional)');
         const pathInput = this.createElement('input', {
             type: 'text',
-            className: 'gb-form-input',
+            className: 'gb-import-form-input',
             placeholder: 'data.results or leave empty for root'
         });
         this.apiDataPath = pathInput;

@@ -21,12 +21,12 @@ const DEMO_DATA = {
     },
     [CHART_TYPES.BAR]: {
         data: [
-            { category: 'Product A', Q1: 45, Q2: 55, Q3: 60 },
-            { category: 'Product B', Q1: 30, Q2: 40, Q3: 35 },
-            { category: 'Product C', Q1: 65, Q2: 70, Q3: 80 },
-            { category: 'Product D', Q1: 50, Q2: 45, Q3: 55 }
+            { category: 'Product A', sales: 45 },
+            { category: 'Product B', sales: 30 },
+            { category: 'Product C', sales: 65 },
+            { category: 'Product D', sales: 50 }
         ],
-        mapping: { xAxis: 'category', yAxis: ['Q1', 'Q2', 'Q3'] }
+        mapping: { xAxis: 'category', yAxis: ['sales'] }
     },
     [CHART_TYPES.PIE]: {
         data: [
@@ -429,8 +429,23 @@ window.addEventListener('resize', function() {
             return seriesItem;
         });
 
-        const categoryAxis = { type: 'category', data: categories };
-        const valueAxis = { type: 'value' };
+        // Get axis labels from type config
+        const xAxisLabel = typeConfig.xAxisLabel || '';
+        const yAxisLabel = typeConfig.yAxisLabel || '';
+
+        const categoryAxis = {
+            type: 'category',
+            data: categories,
+            name: isHorizontal ? yAxisLabel : xAxisLabel,
+            nameLocation: 'middle',
+            nameGap: isHorizontal ? 80 : 30
+        };
+        const valueAxis = {
+            type: 'value',
+            name: isHorizontal ? xAxisLabel : yAxisLabel,
+            nameLocation: 'middle',
+            nameGap: isHorizontal ? 40 : 50
+        };
 
         if (isHorizontal) {
             return { xAxis: valueAxis, yAxis: categoryAxis, series };

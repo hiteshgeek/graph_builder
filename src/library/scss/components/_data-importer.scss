@@ -155,83 +155,85 @@
 .gb-import-form {
     @include flex-column;
     gap: var(--gb-spacing-md);
-}
 
-.gb-form-group {
-    @include flex-column;
-    gap: var(--gb-spacing-xs);
-}
-
-.gb-form-row {
-    flex-direction: row;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.gb-form-label {
-    font-size: var(--gb-font-size-sm);
-    font-weight: 500;
-    color: var(--gb-text-primary);
-}
-
-.gb-form-label-inline {
-    font-size: var(--gb-font-size-sm);
-    color: var(--gb-text-secondary);
-    margin-right: var(--gb-spacing-xs);
-}
-
-.gb-form-input {
-    @include input-reset;
-    width: 100%;
-    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
-    font-size: var(--gb-font-size-sm);
-    color: var(--gb-text-primary);
-    background: var(--gb-bg-secondary);
-    border: 1px solid var(--gb-border-color);
-    border-radius: var(--gb-radius-md);
-    @include transition-fast;
-
-    &::placeholder {
-        color: var(--gb-text-placeholder);
+    // Scoped form styles for import modal only
+    .gb-import-form-group {
+        @include flex-column;
+        gap: var(--gb-spacing-xs);
     }
 
-    &:focus {
-        outline: none;
-        border-color: var(--gb-primary);
-        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    .gb-import-form-row {
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: wrap;
     }
-}
 
-.gb-form-select {
-    @include input-reset;
-    padding: var(--gb-spacing-xs) var(--gb-spacing-sm);
-    font-size: var(--gb-font-size-sm);
-    color: var(--gb-text-primary);
-    background: var(--gb-bg-secondary);
-    border: 1px solid var(--gb-border-color);
-    border-radius: var(--gb-radius-sm);
-    cursor: pointer;
-    min-width: 80px;
-
-    &:focus {
-        outline: none;
-        border-color: var(--gb-primary);
+    .gb-import-form-label {
+        font-size: var(--gb-font-size-sm);
+        font-weight: 500;
+        color: var(--gb-text-primary);
     }
-}
 
-.gb-form-checkbox {
-    @include flex-center;
-    gap: var(--gb-spacing-xs);
-    font-size: var(--gb-font-size-sm);
-    color: var(--gb-text-secondary);
-    cursor: pointer;
-    margin-left: var(--gb-spacing-md);
+    .gb-import-form-label-inline {
+        font-size: var(--gb-font-size-sm);
+        color: var(--gb-text-secondary);
+        margin-right: var(--gb-spacing-xs);
+    }
 
-    input[type="checkbox"] {
-        width: 16px;
-        height: 16px;
-        accent-color: var(--gb-primary);
+    .gb-import-form-input {
+        @include input-reset;
+        width: 100%;
+        padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+        font-size: var(--gb-font-size-sm);
+        color: var(--gb-text-primary);
+        background: var(--gb-bg-secondary);
+        border: 1px solid var(--gb-border-color);
+        border-radius: var(--gb-radius-md);
+        @include transition-fast;
+
+        &::placeholder {
+            color: var(--gb-text-placeholder);
+        }
+
+        &:focus {
+            outline: none;
+            border-color: var(--gb-primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+    }
+
+    .gb-import-form-select {
+        @include input-reset;
+        padding: var(--gb-spacing-xs) var(--gb-spacing-sm);
+        font-size: var(--gb-font-size-sm);
+        color: var(--gb-text-primary);
+        background: var(--gb-bg-secondary);
+        border: 1px solid var(--gb-border-color);
+        border-radius: var(--gb-radius-sm);
         cursor: pointer;
+        min-width: 80px;
+
+        &:focus {
+            outline: none;
+            border-color: var(--gb-primary);
+        }
+    }
+
+    .gb-import-form-checkbox {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: var(--gb-spacing-xs);
+        font-size: var(--gb-font-size-sm);
+        color: var(--gb-text-secondary);
+        cursor: pointer;
+
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--gb-primary);
+            cursor: pointer;
+        }
     }
 }
 

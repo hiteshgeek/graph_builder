@@ -61,18 +61,30 @@ class BarChart extends BaseChart {
             }
         }));
 
+        // Get axis labels from config
+        const xAxisLabel = typeConfig.xAxisLabel || '';
+        const yAxisLabel = typeConfig.yAxisLabel || '';
+
         const categoryAxis = {
             type: 'category',
             data: categories,
             axisLine: { show: true, lineStyle: { color: axisLineColor } },
-            axisLabel: { show: true, color: axisLabelColor }
+            axisLabel: { show: true, color: axisLabelColor },
+            name: isHorizontal ? yAxisLabel : xAxisLabel,
+            nameLocation: 'middle',
+            nameGap: isHorizontal ? 80 : 30,
+            nameTextStyle: { color: axisLabelColor, fontSize: 12 }
         };
 
         const valueAxis = {
             type: 'value',
             axisLine: { show: true, lineStyle: { color: axisLineColor } },
             axisLabel: { show: true, color: axisLabelColor },
-            splitLine: { show: true, lineStyle: { color: splitLineColor } }
+            splitLine: { show: true, lineStyle: { color: splitLineColor } },
+            name: isHorizontal ? xAxisLabel : yAxisLabel,
+            nameLocation: 'middle',
+            nameGap: isHorizontal ? 40 : 50,
+            nameTextStyle: { color: axisLabelColor, fontSize: 12 }
         };
 
         if (isHorizontal) {
@@ -95,17 +107,28 @@ class BarChart extends BaseChart {
         const hasLegend = this.config.base?.showLegend;
         const legendPos = this.config.base?.legendPosition || 'top';
         const isHorizontal = this.config.bar?.horizontal || false;
+        const hasXLabel = !!this.config.bar?.xAxisLabel;
+        const hasYLabel = !!this.config.bar?.yAxisLabel;
 
         let top = 20;
         if (hasTitle) top += 40;
         if (hasLegend && legendPos === 'top') top += 30;
 
+        // Increase margins when axis labels are present
+        let left = isHorizontal ? 80 : 60;
+        let bottom = hasLegend && legendPos === 'bottom' ? 60 : 40;
+
+        if (hasYLabel && !isHorizontal) left += 20;
+        if (hasXLabel && !isHorizontal) bottom += 20;
+        if (hasYLabel && isHorizontal) bottom += 20;
+        if (hasXLabel && isHorizontal) left += 20;
+
         return {
             grid: {
-                left: isHorizontal ? 80 : 60,
+                left: left,
                 right: 20,
                 top: top,
-                bottom: hasLegend && legendPos === 'bottom' ? 60 : 40,
+                bottom: bottom,
                 containLabel: false
             }
         };

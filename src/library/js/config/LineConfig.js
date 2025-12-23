@@ -5,6 +5,7 @@ import {
     createCheckbox,
     createSelect,
     createRange,
+    createTextInput,
     createFormSection
 } from '../ui/FormControls.js';
 
@@ -95,8 +96,31 @@ class LineConfig extends BaseComponent {
             this.controls.symbolSize
         ]);
 
+        // Axis Labels section
+        this.controls.xAxisLabel = createTextInput({
+            name: 'xAxisLabel',
+            label: 'X-Axis Label',
+            value: config.xAxisLabel || '',
+            placeholder: 'e.g., Time',
+            onChange: (value) => this.updateConfig({ xAxisLabel: value })
+        });
+
+        this.controls.yAxisLabel = createTextInput({
+            name: 'yAxisLabel',
+            label: 'Y-Axis Label',
+            value: config.yAxisLabel || '',
+            placeholder: 'e.g., Values',
+            onChange: (value) => this.updateConfig({ yAxisLabel: value })
+        });
+
+        const axisSection = createFormSection('Axis Labels', [
+            this.controls.xAxisLabel,
+            this.controls.yAxisLabel
+        ]);
+
         this.element.appendChild(lineSection);
         this.element.appendChild(pointsSection);
+        this.element.appendChild(axisSection);
 
         this.container.appendChild(this.element);
     }
@@ -117,7 +141,9 @@ class LineConfig extends BaseComponent {
             showSymbol: this.controls.showSymbol?.getValue() ?? true,
             symbolSize: this.controls.symbolSize?.getValue() || 6,
             lineWidth: this.controls.lineWidth?.getValue() || 2,
-            stepLine: this.controls.stepLine?.getValue() || 'none'
+            stepLine: this.controls.stepLine?.getValue() || 'none',
+            xAxisLabel: this.controls.xAxisLabel?.getValue() || '',
+            yAxisLabel: this.controls.yAxisLabel?.getValue() || ''
         };
     }
 
@@ -128,6 +154,8 @@ class LineConfig extends BaseComponent {
         if (this.controls.symbolSize) this.controls.symbolSize.setValue(config.symbolSize || 6);
         if (this.controls.lineWidth) this.controls.lineWidth.setValue(config.lineWidth || 2);
         if (this.controls.stepLine) this.controls.stepLine.setValue(config.stepLine || 'none');
+        if (this.controls.xAxisLabel) this.controls.xAxisLabel.setValue(config.xAxisLabel || '');
+        if (this.controls.yAxisLabel) this.controls.yAxisLabel.setValue(config.yAxisLabel || '');
     }
 }
 

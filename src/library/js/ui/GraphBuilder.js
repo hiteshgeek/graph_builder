@@ -52,6 +52,13 @@ class GraphBuilder extends BaseComponent {
         const logo = this.createElement('h1', { className: 'gb-logo' }, 'Graph Builder');
         titleSection.appendChild(logo);
 
+        // Usage link
+        const usageLink = this.createElement('a', {
+            className: 'gb-header-link',
+            href: 'usage/'
+        }, 'Usage Examples');
+        titleSection.appendChild(usageLink);
+
         const actions = this.createElement('div', { className: 'gb-header-actions' });
 
         // Type switcher container

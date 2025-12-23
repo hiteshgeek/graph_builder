@@ -62,18 +62,30 @@ class LineChart extends BaseChart {
             step: typeConfig.stepLine !== 'none' ? typeConfig.stepLine : false
         }));
 
+        // Get axis labels from config
+        const xAxisLabel = typeConfig.xAxisLabel || '';
+        const yAxisLabel = typeConfig.yAxisLabel || '';
+
         return {
             xAxis: {
                 type: 'category',
                 data: categories,
                 axisLine: { show: true, lineStyle: { color: axisLineColor } },
-                axisLabel: { show: true, color: axisLabelColor }
+                axisLabel: { show: true, color: axisLabelColor },
+                name: xAxisLabel,
+                nameLocation: 'middle',
+                nameGap: 30,
+                nameTextStyle: { color: axisLabelColor, fontSize: 12 }
             },
             yAxis: {
                 type: 'value',
                 axisLine: { show: true, lineStyle: { color: axisLineColor } },
                 axisLabel: { show: true, color: axisLabelColor },
-                splitLine: { show: true, lineStyle: { color: splitLineColor } }
+                splitLine: { show: true, lineStyle: { color: splitLineColor } },
+                name: yAxisLabel,
+                nameLocation: 'middle',
+                nameGap: 50,
+                nameTextStyle: { color: axisLabelColor, fontSize: 12 }
             },
             series
         };
@@ -83,17 +95,26 @@ class LineChart extends BaseChart {
         const hasTitle = this.config.base?.title || this.config.base?.subtitle;
         const hasLegend = this.config.base?.showLegend;
         const legendPos = this.config.base?.legendPosition || 'top';
+        const hasXLabel = !!this.config.line?.xAxisLabel;
+        const hasYLabel = !!this.config.line?.yAxisLabel;
 
         let top = 20;
         if (hasTitle) top += 40;
         if (hasLegend && legendPos === 'top') top += 30;
 
+        // Increase margins when axis labels are present
+        let left = 60;
+        let bottom = hasLegend && legendPos === 'bottom' ? 60 : 40;
+
+        if (hasYLabel) left += 20;
+        if (hasXLabel) bottom += 20;
+
         return {
             grid: {
-                left: 60,
+                left: left,
                 right: 20,
                 top: top,
-                bottom: hasLegend && legendPos === 'bottom' ? 60 : 40,
+                bottom: bottom,
                 containLabel: false
             }
         };
