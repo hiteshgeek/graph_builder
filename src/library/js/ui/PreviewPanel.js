@@ -607,8 +607,8 @@ ${jsCode}
         this.isUsingDemoData = false;
         this.updateDemoBadge();
 
-        // Transform data based on chart type
-        const transformedData = DataTransformer.transform(rawData, chartType);
+        // Transform data based on chart type, passing dataMapping for proper field selection
+        const transformedData = DataTransformer.transform(rawData, chartType, dataMapping);
 
         this.chart.setConfig({ ...config, dataMapping });
         this.chart.setData(transformedData);
@@ -637,11 +637,10 @@ ${jsCode}
 
     onConfigUpdate() {
         if (!this.chart) return;
-        const config = stateManager.getConfig();
-        const dataMapping = stateManager.getDataMapping();
 
-        this.chart.setConfig({ ...config, dataMapping });
-        this.chart.render();
+        // Re-run full chart update to re-transform data with new mapping
+        // This is needed because dataMapping changes require re-transforming the raw data
+        this.updateChart();
 
         // Refresh code tabs if active
         if (this.activeTab === 'js') {

@@ -44,6 +44,7 @@
     gap: var(--gb-spacing-xs);
 }
 
+.gb-query-format-btn,
 .gb-query-clear-btn {
     @include button-reset;
     @include transition-fast;

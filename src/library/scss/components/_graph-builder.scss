@@ -136,19 +136,52 @@
 .gb-sidebar-panel--data {
     .gb-data-explorer-wrapper {
         flex: 1;
-        min-height: 0;
+        min-height: 100px;
         overflow: hidden;
-        border-bottom: 1px solid var(--gb-border-color);
         display: flex;
         flex-direction: column;
     }
 
     .gb-query-wrapper {
         flex: 1;
-        min-height: 0;
+        min-height: 100px;
         overflow: hidden;
         display: flex;
         flex-direction: column;
+    }
+}
+
+// Resizer between data explorer and query
+.gb-data-resizer {
+    flex-shrink: 0;
+    height: 8px;
+    background: var(--gb-border-color);
+    cursor: row-resize;
+    position: relative;
+    @include transition-fast;
+
+    &::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 32px;
+        height: 4px;
+        background: var(--gb-text-muted);
+        border-radius: 2px;
+        opacity: 0.5;
+        @include transition-fast;
+    }
+
+    &:hover,
+    &--active {
+        background: var(--gb-primary-light, rgba(79, 70, 229, 0.2));
+
+        &::before {
+            background: var(--gb-primary);
+            opacity: 1;
+        }
     }
 }
 

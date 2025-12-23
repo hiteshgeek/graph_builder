@@ -67,8 +67,30 @@ class DataTransformer {
         if (!rawData || rawData.length === 0) return [];
 
         const columns = Object.keys(rawData[0]);
-        const nameColumn = options.nameColumn || columns[0];
-        const valueColumn = options.valueColumn || columns[1];
+
+        // Use explicit nameField/valueField from options, or nameColumn/valueColumn, or auto-detect
+        let nameColumn = options.nameField || options.nameColumn || columns[0];
+        let valueColumn = options.valueField || options.valueColumn || columns[1];
+
+        // Auto-detect: if first column is numeric and second is text, swap them
+        if (rawData.length > 0) {
+            const firstVal = rawData[0][columns[0]];
+            const secondVal = rawData[0][columns[1]];
+
+            const firstIsNumeric = typeof firstVal === 'number' ||
+                (!isNaN(parseFloat(firstVal)) && isFinite(firstVal));
+            const secondIsNumeric = typeof secondVal === 'number' ||
+                (!isNaN(parseFloat(secondVal)) && isFinite(secondVal));
+
+            // If using defaults and first is numeric while second is not, swap
+            if (!options.nameField && !options.nameColumn &&
+                !options.valueField && !options.valueColumn) {
+                if (firstIsNumeric && !secondIsNumeric) {
+                    nameColumn = columns[1];
+                    valueColumn = columns[0];
+                }
+            }
+        }
 
         return rawData.map(row => ({
             name: String(row[nameColumn] || ''),

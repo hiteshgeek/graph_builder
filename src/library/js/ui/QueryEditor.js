@@ -32,6 +32,12 @@ class QueryEditor extends BaseComponent {
         // Buttons container
         const buttonsContainer = this.createElement('div', { className: 'gb-query-buttons' });
 
+        const formatBtn = this.createElement('button', {
+            className: 'gb-query-format-btn',
+            type: 'button',
+            title: 'Format SQL query'
+        }, 'Format');
+
         const clearBtn = this.createElement('button', {
             className: 'gb-query-clear-btn',
             type: 'button',
@@ -43,9 +49,11 @@ class QueryEditor extends BaseComponent {
             type: 'button'
         }, 'Execute');
 
+        this.bindEvent(formatBtn, 'click', this.onFormat.bind(this));
         this.bindEvent(clearBtn, 'click', this.onClear.bind(this));
-        this.bindEvent(executeBtn, 'click', this.onExecute);
+        this.bindEvent(executeBtn, 'click', this.onExecute.bind(this));
 
+        buttonsContainer.appendChild(formatBtn);
         buttonsContainer.appendChild(clearBtn);
         buttonsContainer.appendChild(executeBtn);
 
@@ -86,6 +94,16 @@ class QueryEditor extends BaseComponent {
                 const end = textarea.selectionEnd;
                 textarea.value = textarea.value.substring(0, start) + '  ' + textarea.value.substring(end);
                 textarea.selectionStart = textarea.selectionEnd = start + 2;
+            }
+        });
+
+        // Auto-format on blur (focus lost)
+        this.bindEvent(textarea, 'blur', () => {
+            const sql = textarea.value.trim();
+            if (sql) {
+                const formatted = this.formatSQL(sql);
+                textarea.value = formatted;
+                stateManager.setQuery(formatted);
             }
         });
 
@@ -150,12 +168,64 @@ class QueryEditor extends BaseComponent {
     }
 
     /**
+     * Format the SQL query
+     */
+    onFormat() {
+        const sql = this.textarea.value.trim();
+        if (!sql) return;
+
+        const formatted = this.formatSQL(sql);
+        this.textarea.value = formatted;
+        stateManager.setQuery(formatted);
+    }
+
+    /**
+     * Simple SQL formatter
+     */
+    formatSQL(sql) {
+        const newlineKeywords = [
+            'SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'ORDER BY', 'GROUP BY',
+            'HAVING', 'LIMIT', 'OFFSET', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN',
+            'INNER JOIN', 'OUTER JOIN', 'CROSS JOIN', 'ON', 'SET', 'VALUES',
+            'INSERT INTO', 'UPDATE', 'DELETE FROM', 'UNION', 'UNION ALL'
+        ];
+
+        // Normalize whitespace
+        let formatted = sql.replace(/\s+/g, ' ').trim();
+
+        // Add newlines before keywords
+        newlineKeywords.forEach(keyword => {
+            const regex = new RegExp(`\\s+(${keyword})\\s+`, 'gi');
+            formatted = formatted.replace(regex, `\n${keyword.toUpperCase()} `);
+        });
+
+        // Ensure SELECT is at the start
+        formatted = formatted.replace(/^SELECT\s+/i, 'SELECT ');
+
+        // Indent AND/OR
+        const lines = formatted.split('\n');
+        const indentedLines = lines.map((line, index) => {
+            const trimmed = line.trim();
+            const upper = trimmed.toUpperCase();
+
+            if (index > 0) {
+                if (upper.startsWith('AND ') || upper.startsWith('OR ')) {
+                    return '  ' + trimmed;
+                }
+            }
+
+            return trimmed;
+        });
+
+        return indentedLines.join('\n');
+    }
+
+    /**
      * Clear query and reset to demo data
      */
     onClear() {
         // Clear textarea
         this.textarea.value = '';
-        this.updateHighlight('');
 
         // Clear state
         stateManager.setQuery('');

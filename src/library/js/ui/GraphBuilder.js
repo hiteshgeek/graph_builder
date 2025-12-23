@@ -113,8 +113,14 @@ class GraphBuilder extends BaseComponent {
             'data-panel': 'data'
         });
         this.dataExplorerContainer = this.createElement('div', { className: 'gb-data-explorer-wrapper' });
+
+        // Resizer between data explorer and query
+        const dataResizer = this.createElement('div', { className: 'gb-data-resizer' });
+        this.initDataResizer(dataResizer);
+
         this.queryContainer = this.createElement('div', { className: 'gb-query-wrapper' });
         this.tabPanels.data.appendChild(this.dataExplorerContainer);
+        this.tabPanels.data.appendChild(dataResizer);
         this.tabPanels.data.appendChild(this.queryContainer);
 
         // Mapping tab panel
@@ -261,6 +267,64 @@ class GraphBuilder extends BaseComponent {
             event: 'resize',
             handler: handleResize
         });
+    }
+
+    /**
+     * Initialize the resizer between data explorer and query editor
+     */
+    initDataResizer(resizer) {
+        let isResizing = false;
+        let startY = 0;
+        let startTopHeight = 0;
+
+        const onMouseDown = (e) => {
+            isResizing = true;
+            startY = e.clientY;
+            startTopHeight = this.dataExplorerContainer.offsetHeight;
+            document.body.style.cursor = 'row-resize';
+            document.body.style.userSelect = 'none';
+            resizer.classList.add('gb-data-resizer--active');
+        };
+
+        const onMouseMove = (e) => {
+            if (!isResizing) return;
+
+            const deltaY = e.clientY - startY;
+            const parentHeight = this.tabPanels.data.offsetHeight;
+            const resizerHeight = resizer.offsetHeight;
+            const minHeight = 100; // Minimum height for each section
+
+            let newTopHeight = startTopHeight + deltaY;
+
+            // Constrain heights
+            newTopHeight = Math.max(minHeight, newTopHeight);
+            newTopHeight = Math.min(parentHeight - resizerHeight - minHeight, newTopHeight);
+
+            // Calculate flex basis percentages
+            const topPercent = (newTopHeight / parentHeight) * 100;
+
+            this.dataExplorerContainer.style.flex = `0 0 ${topPercent}%`;
+            this.queryContainer.style.flex = '1 1 auto';
+        };
+
+        const onMouseUp = () => {
+            if (!isResizing) return;
+            isResizing = false;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            resizer.classList.remove('gb-data-resizer--active');
+        };
+
+        resizer.addEventListener('mousedown', onMouseDown);
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+
+        // Store for cleanup
+        this.eventBindings.push(
+            { element: resizer, event: 'mousedown', handler: onMouseDown },
+            { element: document, event: 'mousemove', handler: onMouseMove },
+            { element: document, event: 'mouseup', handler: onMouseUp }
+        );
     }
 
     // Public API

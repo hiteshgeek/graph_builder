@@ -9,7 +9,8 @@ class PieChart extends BaseChart {
     }
 
     /**
-     * Transform data for pie chart using dataMapping
+     * Transform data for pie chart
+     * Data is already transformed by DataTransformer.toPie() to {name, value} format
      * @param {Array} rawData
      * @returns {Object}
      */
@@ -18,16 +19,11 @@ class PieChart extends BaseChart {
             return { series: [] };
         }
 
-        const mapping = this.config.dataMapping || {};
-        const columns = Object.keys(rawData[0]);
-
-        // Use mapping or fallback to auto-detect
-        const nameColumn = mapping.nameField || columns.find(c => c.toLowerCase() === 'name') || columns[0];
-        const valueColumn = mapping.valueField || columns.find(c => c.toLowerCase() === 'value') || columns[1];
-
+        // Data is already in {name, value} format from DataTransformer.toPie()
+        // Just use it directly - no need to re-transform
         const pieData = rawData.map(row => ({
-            name: row[nameColumn],
-            value: parseFloat(row[valueColumn]) || 0
+            name: row.name,
+            value: parseFloat(row.value) || 0
         }));
 
         const typeConfig = this.config.pie || {};

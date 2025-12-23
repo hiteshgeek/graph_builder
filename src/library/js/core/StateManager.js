@@ -129,14 +129,38 @@ class StateManager {
     }
 
     autoSetDataMapping(columns) {
-        // Auto-detect: first column as X-axis/name, rest as Y-axis/value
+        // Try to intelligently detect name vs value columns from actual data
+        const data = this.state.data;
+        let nameField = columns[0];
+        let valueField = columns[1] || null;
+
+        // For pie charts, detect which column has numeric values vs text labels
+        if (data && data.length > 0 && columns.length >= 2) {
+            const firstRowFirstCol = data[0][columns[0]];
+            const firstRowSecondCol = data[0][columns[1]];
+
+            // Check if first column is numeric and second is text
+            const firstIsNumeric = typeof firstRowFirstCol === 'number' ||
+                (!isNaN(parseFloat(firstRowFirstCol)) && isFinite(firstRowFirstCol));
+            const secondIsNumeric = typeof firstRowSecondCol === 'number' ||
+                (!isNaN(parseFloat(firstRowSecondCol)) && isFinite(firstRowSecondCol));
+
+            // If first is numeric and second is not, swap them for pie chart mapping
+            if (firstIsNumeric && !secondIsNumeric) {
+                nameField = columns[1];
+                valueField = columns[0];
+            }
+        }
+
+        // For axis charts, first column is typically X-axis (category), rest are Y-axis (values)
         const xAxis = columns[0];
         const yAxis = columns.slice(1);
+
         this.state.dataMapping = {
             xAxis,
             yAxis,
-            nameField: columns[0],
-            valueField: columns[1] || null
+            nameField,
+            valueField
         };
     }
 
