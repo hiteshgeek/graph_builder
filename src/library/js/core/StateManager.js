@@ -109,6 +109,19 @@ class StateManager {
         eventBus.emit(EVENTS.QUERY_EXECUTED, { data, columns });
     }
 
+    clearData() {
+        this.state.data = [];
+        this.state.columns = [];
+        this.state.dataMapping = {
+            xAxis: null,
+            yAxis: [],
+            nameField: null,
+            valueField: null
+        };
+        this.saveToStorage();
+        eventBus.emit(EVENTS.QUERY_EXECUTED, { data: [], columns: [] });
+    }
+
     setDataMapping(mapping) {
         this.state.dataMapping = { ...this.state.dataMapping, ...mapping };
         this.saveToStorage();

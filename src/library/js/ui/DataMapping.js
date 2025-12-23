@@ -74,8 +74,32 @@ class DataMapping extends BaseComponent {
 
         // Y-Axis multi-select (checkboxes)
         const yAxisContainer = this.createElement('div', { className: 'gb-form-group' });
+
+        // Label with select/deselect buttons
+        const yAxisHeader = this.createElement('div', { className: 'gb-form-label-row' });
         const yAxisLabel = this.createElement('label', { className: 'gb-form-label' }, 'Y-Axis (Values)');
-        yAxisContainer.appendChild(yAxisLabel);
+
+        const toggleBtns = this.createElement('div', { className: 'gb-toggle-btns' });
+        const selectAllBtn = this.createElement('button', {
+            className: 'gb-toggle-btn',
+            type: 'button',
+            title: 'Select all'
+        }, 'All');
+        const deselectAllBtn = this.createElement('button', {
+            className: 'gb-toggle-btn',
+            type: 'button',
+            title: 'Deselect all'
+        }, 'None');
+
+        selectAllBtn.addEventListener('click', () => this.selectAllYAxis(true));
+        deselectAllBtn.addEventListener('click', () => this.selectAllYAxis(false));
+
+        toggleBtns.appendChild(selectAllBtn);
+        toggleBtns.appendChild(deselectAllBtn);
+
+        yAxisHeader.appendChild(yAxisLabel);
+        yAxisHeader.appendChild(toggleBtns);
+        yAxisContainer.appendChild(yAxisHeader);
 
         const yAxisList = this.createElement('div', { className: 'gb-yaxis-list' });
 
@@ -108,6 +132,17 @@ class DataMapping extends BaseComponent {
         ]);
 
         this.contentEl.appendChild(section);
+    }
+
+    selectAllYAxis(selectAll) {
+        if (!this.yAxisList) return;
+
+        const checkboxes = this.yAxisList.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            cb.checked = selectAll;
+        });
+
+        this.onYAxisChange();
     }
 
     renderPieMapping(mapping) {

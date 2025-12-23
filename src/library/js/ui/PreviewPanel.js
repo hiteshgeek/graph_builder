@@ -5,30 +5,39 @@ import { ChartFactory } from '../charts/ChartFactory.js';
 import { DataTransformer } from '../data/DataTransformer.js';
 
 /**
- * Demo data for different chart types
+ * Demo data for different chart types with corresponding mappings
  */
 const DEMO_DATA = {
-    [CHART_TYPES.LINE]: [
-        { month: 'Jan', sales: 120, revenue: 80 },
-        { month: 'Feb', sales: 150, revenue: 95 },
-        { month: 'Mar', sales: 180, revenue: 120 },
-        { month: 'Apr', sales: 140, revenue: 90 },
-        { month: 'May', sales: 200, revenue: 150 },
-        { month: 'Jun', sales: 220, revenue: 170 }
-    ],
-    [CHART_TYPES.BAR]: [
-        { category: 'Product A', Q1: 45, Q2: 55, Q3: 60 },
-        { category: 'Product B', Q1: 30, Q2: 40, Q3: 35 },
-        { category: 'Product C', Q1: 65, Q2: 70, Q3: 80 },
-        { category: 'Product D', Q1: 50, Q2: 45, Q3: 55 }
-    ],
-    [CHART_TYPES.PIE]: [
-        { name: 'Electronics', value: 335 },
-        { name: 'Clothing', value: 210 },
-        { name: 'Food', value: 180 },
-        { name: 'Books', value: 125 },
-        { name: 'Other', value: 90 }
-    ]
+    [CHART_TYPES.LINE]: {
+        data: [
+            { month: 'Jan', sales: 120, revenue: 80 },
+            { month: 'Feb', sales: 150, revenue: 95 },
+            { month: 'Mar', sales: 180, revenue: 120 },
+            { month: 'Apr', sales: 140, revenue: 90 },
+            { month: 'May', sales: 200, revenue: 150 },
+            { month: 'Jun', sales: 220, revenue: 170 }
+        ],
+        mapping: { xAxis: 'month', yAxis: ['sales', 'revenue'] }
+    },
+    [CHART_TYPES.BAR]: {
+        data: [
+            { category: 'Product A', Q1: 45, Q2: 55, Q3: 60 },
+            { category: 'Product B', Q1: 30, Q2: 40, Q3: 35 },
+            { category: 'Product C', Q1: 65, Q2: 70, Q3: 80 },
+            { category: 'Product D', Q1: 50, Q2: 45, Q3: 55 }
+        ],
+        mapping: { xAxis: 'category', yAxis: ['Q1', 'Q2', 'Q3'] }
+    },
+    [CHART_TYPES.PIE]: {
+        data: [
+            { name: 'Electronics', value: 335 },
+            { name: 'Clothing', value: 210 },
+            { name: 'Food', value: 180 },
+            { name: 'Books', value: 125 },
+            { name: 'Other', value: 90 }
+        ],
+        mapping: { nameField: 'name', valueField: 'value' }
+    }
 };
 
 const TABS = [
@@ -240,13 +249,34 @@ class PreviewPanel extends BaseComponent {
     }
 
     generateJsCode() {
-        const option = this.chart?.getOption();
-        if (!option) return '// No chart configuration available';
+        // Build clean options from our config and data, not from ECharts internal state
+        const chartType = stateManager.getChartType();
+        const config = stateManager.getConfig();
+        const baseConfig = config.base || {};
 
+        // Get clean data - either real data or demo data
+        let data, dataMapping;
+        if (this.isUsingDemoData) {
+            const demo = this.getDemoData(chartType);
+            data = demo.data;
+            dataMapping = demo.mapping;
+        } else {
+            data = stateManager.getData() || [];
+            dataMapping = stateManager.getDataMapping() || {};
+        }
+
+        // Build clean option object
+        const option = this.buildCleanOption(chartType, config, data, dataMapping);
         const optionStr = JSON.stringify(option, null, 2);
+
+        // Generate data variable
+        const dataStr = JSON.stringify(data, null, 2);
 
         return `// ECharts Configuration
 // Include ECharts: <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+
+// Chart data
+const data = ${dataStr};
 
 // Initialize chart
 const chartDom = document.getElementById('chart-container');
@@ -262,6 +292,150 @@ myChart.setOption(option);
 window.addEventListener('resize', function() {
     myChart.resize();
 });`;
+    }
+
+    /**
+     * Build clean ECharts option from our config
+     * @param {string} chartType
+     * @param {Object} config
+     * @param {Array} data
+     * @param {Object} dataMapping
+     * @returns {Object}
+     */
+    buildCleanOption(chartType, config, data, dataMapping) {
+        const baseConfig = config.base || {};
+        const option = {};
+
+        // Title
+        if (baseConfig.title || baseConfig.subtitle) {
+            option.title = {
+                text: baseConfig.title || '',
+                subtext: baseConfig.subtitle || '',
+                left: 'center'
+            };
+        }
+
+        // Legend
+        if (baseConfig.showLegend) {
+            const positionMap = {
+                top: { top: 'top', left: 'center', orient: 'horizontal' },
+                bottom: { bottom: 0, left: 'center', orient: 'horizontal' },
+                left: { left: 0, top: 'middle', orient: 'vertical' },
+                right: { right: 0, top: 'middle', orient: 'vertical' }
+            };
+            option.legend = {
+                show: true,
+                ...(positionMap[baseConfig.legendPosition] || positionMap.top)
+            };
+        }
+
+        // Tooltip
+        option.tooltip = {
+            trigger: chartType === CHART_TYPES.PIE ? 'item' : 'axis'
+        };
+
+        // Colors
+        if (baseConfig.colors && baseConfig.colors.length > 0) {
+            option.color = baseConfig.colors;
+        }
+
+        // Animation
+        option.animation = baseConfig.animation !== false;
+
+        // Chart-type specific options
+        if (chartType === CHART_TYPES.PIE) {
+            option.series = this.buildPieSeries(data, dataMapping, config.pie || {});
+        } else {
+            const axisData = this.buildAxisData(chartType, data, dataMapping, config);
+            option.xAxis = axisData.xAxis;
+            option.yAxis = axisData.yAxis;
+            option.series = axisData.series;
+            option.grid = { left: 60, right: 20, top: 60, bottom: 40, containLabel: false };
+        }
+
+        return option;
+    }
+
+    /**
+     * Build pie series data
+     */
+    buildPieSeries(data, mapping, pieConfig) {
+        const nameField = mapping.nameField || 'name';
+        const valueField = mapping.valueField || 'value';
+
+        const pieData = data.map(row => ({
+            name: row[nameField],
+            value: parseFloat(row[valueField]) || 0
+        }));
+
+        const outerRadius = pieConfig.radius || 70;
+        const innerRadius = pieConfig.innerRadius || 0;
+
+        return [{
+            type: 'pie',
+            radius: [`${innerRadius}%`, `${outerRadius}%`],
+            center: ['50%', '55%'],
+            roseType: pieConfig.roseType !== 'none' ? pieConfig.roseType : false,
+            padAngle: pieConfig.padAngle || 0,
+            itemStyle: {
+                borderRadius: pieConfig.borderRadius || 0
+            },
+            data: pieData,
+            label: {
+                show: pieConfig.showLabels !== false,
+                position: pieConfig.labelPosition || 'outside'
+            }
+        }];
+    }
+
+    /**
+     * Build axis data for line/bar charts
+     */
+    buildAxisData(chartType, data, mapping, config) {
+        if (!data || data.length === 0) {
+            return { xAxis: { type: 'category', data: [] }, yAxis: { type: 'value' }, series: [] };
+        }
+
+        const columns = Object.keys(data[0]);
+        const xAxisColumn = mapping.xAxis || columns[0];
+        const yAxisColumns = mapping.yAxis && mapping.yAxis.length > 0
+            ? mapping.yAxis
+            : columns.filter(c => c !== xAxisColumn);
+
+        const categories = data.map(row => row[xAxisColumn]);
+        const typeConfig = config[chartType] || {};
+        const isHorizontal = chartType === CHART_TYPES.BAR && typeConfig.horizontal;
+
+        const series = yAxisColumns.map(col => {
+            const seriesItem = {
+                name: col,
+                type: chartType,
+                data: data.map(row => row[col])
+            };
+
+            if (chartType === CHART_TYPES.LINE) {
+                seriesItem.smooth = typeConfig.smooth || false;
+                seriesItem.showSymbol = typeConfig.showSymbol !== false;
+                if (typeConfig.showArea) {
+                    seriesItem.areaStyle = { opacity: 0.3 };
+                }
+            } else if (chartType === CHART_TYPES.BAR) {
+                if (typeConfig.stacked) {
+                    seriesItem.stack = 'total';
+                }
+                seriesItem.barWidth = `${typeConfig.barWidth || 60}%`;
+            }
+
+            return seriesItem;
+        });
+
+        const categoryAxis = { type: 'category', data: categories };
+        const valueAxis = { type: 'value' };
+
+        if (isHorizontal) {
+            return { xAxis: valueAxis, yAxis: categoryAxis, series };
+        }
+        return { xAxis: categoryAxis, yAxis: valueAxis, series };
     }
 
     generateHtmlCode() {
@@ -397,12 +571,14 @@ ${jsCode}
         if (!this.chart) return;
 
         this.isUsingDemoData = true;
-        const demoData = this.getDemoData(chartType);
+        const demo = this.getDemoData(chartType);
         const config = stateManager.getConfig();
-        const dataMapping = stateManager.getDataMapping();
 
-        const transformedData = DataTransformer.transform(demoData, chartType);
-        this.chart.setConfig({ ...config, dataMapping });
+        // Use demo-specific mapping, not user's mapping (which may not match demo columns)
+        const demoMapping = demo.mapping;
+
+        const transformedData = DataTransformer.transform(demo.data, chartType);
+        this.chart.setConfig({ ...config, dataMapping: demoMapping });
         this.chart.setData(transformedData);
 
         this.updateDemoBadge();

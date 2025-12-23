@@ -33,6 +33,46 @@
     padding: var(--gb-spacing-md);
 }
 
+// Label row with toggle buttons
+.gb-form-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--gb-spacing-xs);
+}
+
+.gb-toggle-btns {
+    display: flex;
+    gap: 2px;
+}
+
+.gb-toggle-btn {
+    @include button-reset;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--gb-text-muted);
+    background: var(--gb-bg-secondary);
+    border: 1px solid var(--gb-border-color);
+    border-radius: var(--gb-radius-sm);
+    cursor: pointer;
+    @include transition-fast;
+
+    &:first-child {
+        border-radius: var(--gb-radius-sm) 0 0 var(--gb-radius-sm);
+    }
+
+    &:last-child {
+        border-radius: 0 var(--gb-radius-sm) var(--gb-radius-sm) 0;
+        border-left: none;
+    }
+
+    &:hover {
+        color: var(--gb-text-primary);
+        background: var(--gb-bg-hover);
+    }
+}
+
 // Y-Axis checkboxes list
 .gb-yaxis-list {
     display: flex;

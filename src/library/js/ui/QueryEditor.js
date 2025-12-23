@@ -6,15 +6,15 @@ import { QueryValidator } from '../data/QueryValidator.js';
 import { debounce } from '../utils/helpers.js';
 
 /**
- * QueryEditor - SQL query input with execution and syntax highlighting support
+ * QueryEditor - SQL query input with execution
+ * Simple textarea approach without overlay highlighting to avoid sync issues
  */
 class QueryEditor extends BaseComponent {
     constructor(container, options = {}) {
         super(container, options);
         this.apiClient = new ApiClient(options.apiBase || '');
         this.isLoading = false;
-        this.codeElement = null;
-        this.preElement = null;
+        this.saveTimeout = null;
     }
 
     init() {
@@ -28,26 +28,34 @@ class QueryEditor extends BaseComponent {
         const header = this.createElement('div', { className: 'gb-query-header' });
         const title = this.createElement('span', { className: 'gb-query-title' }, 'SQL Query');
         const hint = this.createElement('span', { className: 'gb-query-hint' }, 'Ctrl+Enter to execute');
+
+        // Buttons container
+        const buttonsContainer = this.createElement('div', { className: 'gb-query-buttons' });
+
+        const clearBtn = this.createElement('button', {
+            className: 'gb-query-clear-btn',
+            type: 'button',
+            title: 'Clear query and reset to demo data'
+        }, 'Clear');
+
         const executeBtn = this.createElement('button', {
             className: 'gb-query-execute-btn',
             type: 'button'
         }, 'Execute');
 
+        this.bindEvent(clearBtn, 'click', this.onClear.bind(this));
         this.bindEvent(executeBtn, 'click', this.onExecute);
+
+        buttonsContainer.appendChild(clearBtn);
+        buttonsContainer.appendChild(executeBtn);
 
         header.appendChild(title);
         header.appendChild(hint);
-        header.appendChild(executeBtn);
+        header.appendChild(buttonsContainer);
 
-        // Editor container with overlay for highlighting
+        // Simple textarea editor (no overlay highlighting)
         const editorContainer = this.createElement('div', { className: 'gb-query-editor-container' });
 
-        // Highlighted code layer (background)
-        this.preElement = this.createElement('pre', { className: 'gb-query-highlight' });
-        this.codeElement = this.createElement('code', { className: 'language-sql' });
-        this.preElement.appendChild(this.codeElement);
-
-        // Textarea layer (foreground, transparent text)
         const textarea = this.createElement('textarea', {
             className: 'gb-query-input',
             placeholder: 'SELECT column1, column2\nFROM table_name\nWHERE condition = value\nLIMIT 100',
@@ -58,15 +66,12 @@ class QueryEditor extends BaseComponent {
         });
         textarea.value = stateManager.getQuery() || '';
 
-        // Sync scroll between textarea and pre
-        this.bindEvent(textarea, 'scroll', () => {
-            this.preElement.scrollTop = textarea.scrollTop;
-            this.preElement.scrollLeft = textarea.scrollLeft;
-        });
-
         this.bindEvent(textarea, 'input', (e) => {
-            this.updateHighlight(e.target.value);
-            debounce(() => stateManager.setQuery(e.target.value), 300)();
+            // Debounce save to state
+            if (this.saveTimeout) clearTimeout(this.saveTimeout);
+            this.saveTimeout = setTimeout(() => {
+                stateManager.setQuery(e.target.value);
+            }, 300);
         });
 
         this.bindEvent(textarea, 'keydown', (e) => {
@@ -81,14 +86,12 @@ class QueryEditor extends BaseComponent {
                 const end = textarea.selectionEnd;
                 textarea.value = textarea.value.substring(0, start) + '  ' + textarea.value.substring(end);
                 textarea.selectionStart = textarea.selectionEnd = start + 2;
-                this.updateHighlight(textarea.value);
             }
         });
 
         this.textarea = textarea;
         this.executeBtn = executeBtn;
 
-        editorContainer.appendChild(this.preElement);
         editorContainer.appendChild(textarea);
 
         // Status/error area
@@ -99,29 +102,6 @@ class QueryEditor extends BaseComponent {
         this.element.appendChild(this.statusArea);
 
         this.container.appendChild(this.element);
-
-        // Initial highlight
-        this.updateHighlight(textarea.value);
-    }
-
-    updateHighlight(code) {
-        if (!this.codeElement) return;
-
-        // Add newline to prevent layout issues
-        const displayCode = code + '\n';
-
-        // Check if highlight.js is available
-        if (window.hljs) {
-            this.codeElement.textContent = displayCode;
-            this.codeElement.className = 'language-sql';
-            window.hljs.highlightElement(this.codeElement);
-            // Add hljs-active class to make textarea text transparent
-            this.element.classList.add('hljs-active');
-        } else {
-            // Fallback: just display plain text
-            this.codeElement.textContent = displayCode;
-            this.element.classList.remove('hljs-active');
-        }
     }
 
     async onExecute() {
@@ -169,6 +149,23 @@ class QueryEditor extends BaseComponent {
         this.element.classList.toggle('gb-query-editor--loading', loading);
     }
 
+    /**
+     * Clear query and reset to demo data
+     */
+    onClear() {
+        // Clear textarea
+        this.textarea.value = '';
+        this.updateHighlight('');
+
+        // Clear state
+        stateManager.setQuery('');
+        stateManager.clearData();
+
+        // Clear status
+        this.clearStatus();
+        this.showSuccess('Cleared. Using demo data.');
+    }
+
     showError(message) {
         this.statusArea.innerHTML = '';
         const error = this.createElement('div', { className: 'gb-query-error' }, message);
@@ -192,7 +189,6 @@ class QueryEditor extends BaseComponent {
 
     setQuery(sql) {
         this.textarea.value = sql;
-        this.updateHighlight(sql);
         stateManager.setQuery(sql);
     }
 
@@ -220,7 +216,6 @@ class QueryEditor extends BaseComponent {
         this.textarea.value = value.substring(0, start) + insertText + value.substring(end);
         this.textarea.selectionStart = this.textarea.selectionEnd = start + insertText.length;
         this.textarea.focus();
-        this.updateHighlight(this.textarea.value);
         stateManager.setQuery(this.textarea.value);
     }
 }
