@@ -90,27 +90,60 @@
     }
 }
 
-// Editor container
+// Editor container - positioned for overlay
 .gb-query-editor-container {
     flex: 1;
     overflow: hidden;
     display: flex;
     min-height: 0;
+    position: relative;
 }
 
-// Textarea input
+// Highlighted backdrop (behind textarea)
+.gb-query-highlight {
+    @include custom-scrollbar;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+    font-family: var(--gb-font-mono);
+    font-size: var(--gb-font-size-sm);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow: auto;
+    background: var(--gb-bg-secondary);
+    color: var(--gb-text-primary); // Default text color for non-highlighted text
+    pointer-events: none;
+    border: none;
+}
+
+.gb-query-highlight-code {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+}
+
+// Textarea input - transparent background to show highlight
 .gb-query-input {
     @include input-reset;
     @include custom-scrollbar;
+    position: relative;
     width: 100%;
     height: 100%;
     padding: var(--gb-spacing-sm) var(--gb-spacing-md);
     font-family: var(--gb-font-mono);
     font-size: var(--gb-font-size-sm);
     line-height: 1.6;
-    color: var(--gb-text-primary);
-    background: var(--gb-bg-secondary);
+    color: transparent;
+    caret-color: var(--gb-text-primary);
+    background: transparent;
     resize: none;
+    z-index: 1;
 
     &::placeholder {
         color: var(--gb-text-placeholder);
@@ -118,7 +151,57 @@
 
     &:focus {
         outline: none;
-        background: var(--gb-bg-primary);
+    }
+}
+
+// Focus state for highlight background - using :focus-within on container
+.gb-query-editor-container:focus-within .gb-query-highlight {
+    background: var(--gb-bg-primary);
+}
+
+// SQL Syntax highlighting colors (Light theme)
+.gb-sql-keyword {
+    color: #0000ff; // Blue for keywords
+    font-weight: 600;
+}
+
+.gb-sql-operator {
+    color: #af00db; // Purple for operators
+    font-weight: 500;
+}
+
+.gb-sql-function {
+    color: #795e26; // Brown for functions
+}
+
+.gb-sql-string {
+    color: #a31515; // Red for strings
+}
+
+.gb-sql-number {
+    color: #098658; // Green for numbers
+}
+
+// Dark theme SQL highlighting
+[data-theme="dark"] {
+    .gb-sql-keyword {
+        color: #569cd6; // Light blue
+    }
+
+    .gb-sql-operator {
+        color: #c586c0; // Pink/purple
+    }
+
+    .gb-sql-function {
+        color: #dcdcaa; // Yellow
+    }
+
+    .gb-sql-string {
+        color: #ce9178; // Orange
+    }
+
+    .gb-sql-number {
+        color: #b5cea8; // Light green
     }
 }
 

@@ -38,15 +38,27 @@ class DataTransformer {
     /**
      * Transform for line/bar charts (category + values)
      * @param {Array} rawData
-     * @param {Object} options
+     * @param {Object} options - supports xAxis/yAxis from DataMapping or categoryColumn/valueColumns
      * @returns {Array}
      */
     static toCartesian(rawData, options = {}) {
         if (!rawData || rawData.length === 0) return [];
 
         const columns = Object.keys(rawData[0]);
-        const categoryColumn = options.categoryColumn || columns[0];
-        const valueColumns = options.valueColumns || columns.slice(1);
+
+        // Support both DataMapping format (xAxis/yAxis) and legacy format (categoryColumn/valueColumns)
+        const categoryColumn = options.xAxis || options.categoryColumn || columns[0];
+        let valueColumns = options.yAxis || options.valueColumns || columns.slice(1);
+
+        // Ensure valueColumns is an array
+        if (!Array.isArray(valueColumns)) {
+            valueColumns = valueColumns ? [valueColumns] : columns.filter(c => c !== categoryColumn);
+        }
+
+        // If no yAxis selected, default to all numeric columns except category
+        if (valueColumns.length === 0) {
+            valueColumns = columns.filter(c => c !== categoryColumn);
+        }
 
         return rawData.map(row => {
             const result = { [categoryColumn]: row[categoryColumn] };

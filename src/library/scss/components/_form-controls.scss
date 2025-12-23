@@ -72,7 +72,9 @@
 
 // Checkbox
 .gb-form-checkbox-label {
-    @include flex-center;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
     gap: var(--gb-spacing-sm);
     cursor: pointer;
 }

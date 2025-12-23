@@ -61,8 +61,13 @@ class QueryEditor extends BaseComponent {
         header.appendChild(hint);
         header.appendChild(buttonsContainer);
 
-        // Simple textarea editor (no overlay highlighting)
+        // Syntax-highlighted SQL editor with overlay
         const editorContainer = this.createElement('div', { className: 'gb-query-editor-container' });
+
+        // Highlighted code backdrop
+        const highlight = this.createElement('pre', { className: 'gb-query-highlight' });
+        const highlightCode = this.createElement('code', { className: 'gb-query-highlight-code' });
+        highlight.appendChild(highlightCode);
 
         const textarea = this.createElement('textarea', {
             className: 'gb-query-input',
@@ -74,13 +79,27 @@ class QueryEditor extends BaseComponent {
         });
         textarea.value = stateManager.getQuery() || '';
 
+        // Update highlight on input
+        const updateHighlight = () => {
+            highlightCode.innerHTML = this.highlightSQL(textarea.value) + '\n';
+        };
+
+        // Sync scroll between textarea and highlight
+        const syncScroll = () => {
+            highlight.scrollTop = textarea.scrollTop;
+            highlight.scrollLeft = textarea.scrollLeft;
+        };
+
         this.bindEvent(textarea, 'input', (e) => {
+            updateHighlight();
             // Debounce save to state
             if (this.saveTimeout) clearTimeout(this.saveTimeout);
             this.saveTimeout = setTimeout(() => {
                 stateManager.setQuery(e.target.value);
             }, 300);
         });
+
+        this.bindEvent(textarea, 'scroll', syncScroll);
 
         this.bindEvent(textarea, 'keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -94,6 +113,7 @@ class QueryEditor extends BaseComponent {
                 const end = textarea.selectionEnd;
                 textarea.value = textarea.value.substring(0, start) + '  ' + textarea.value.substring(end);
                 textarea.selectionStart = textarea.selectionEnd = start + 2;
+                updateHighlight();
             }
         });
 
@@ -104,13 +124,20 @@ class QueryEditor extends BaseComponent {
                 const formatted = this.formatSQL(sql);
                 textarea.value = formatted;
                 stateManager.setQuery(formatted);
+                updateHighlight();
             }
         });
 
         this.textarea = textarea;
+        this.highlightCode = highlightCode;
         this.executeBtn = executeBtn;
+        this.updateHighlight = updateHighlight;
 
+        editorContainer.appendChild(highlight);
         editorContainer.appendChild(textarea);
+
+        // Initial highlight
+        updateHighlight();
 
         // Status/error area
         this.statusArea = this.createElement('div', { className: 'gb-query-status' });
@@ -272,6 +299,73 @@ class QueryEditor extends BaseComponent {
     }
 
     /**
+     * Syntax highlight SQL for display
+     * Returns HTML with span-wrapped tokens
+     */
+    highlightSQL(sql) {
+        if (!sql) return '';
+
+        // Escape HTML
+        let highlighted = sql
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+        // Protect strings first (single and double quoted)
+        const strings = [];
+        highlighted = highlighted.replace(/'[^']*'|"[^"]*"/g, (match) => {
+            const placeholder = `___STR${strings.length}___`;
+            strings.push(`<span class="gb-sql-string">${match}</span>`);
+            return placeholder;
+        });
+
+        // Protect numbers
+        highlighted = highlighted.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="gb-sql-number">$1</span>');
+
+        // Keywords (major clauses)
+        const majorKeywords = ['SELECT', 'FROM', 'WHERE', 'ORDER BY', 'GROUP BY', 'HAVING', 'LIMIT', 'OFFSET',
+            'INSERT INTO', 'UPDATE', 'DELETE FROM', 'SET', 'VALUES', 'UNION ALL', 'UNION'];
+
+        majorKeywords.forEach(kw => {
+            const regex = new RegExp(`\\b(${kw})\\b`, 'gi');
+            highlighted = highlighted.replace(regex, '<span class="gb-sql-keyword">$1</span>');
+        });
+
+        // JOIN keywords
+        const joinKeywords = ['JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 'OUTER JOIN', 'CROSS JOIN',
+            'LEFT OUTER JOIN', 'RIGHT OUTER JOIN', 'FULL OUTER JOIN', 'ON'];
+
+        joinKeywords.forEach(kw => {
+            const regex = new RegExp(`\\b(${kw})\\b`, 'gi');
+            highlighted = highlighted.replace(regex, '<span class="gb-sql-keyword">$1</span>');
+        });
+
+        // Operators and conditions
+        const operators = ['AND', 'OR', 'NOT', 'IN', 'BETWEEN', 'LIKE', 'IS', 'NULL', 'AS', 'ASC', 'DESC', 'DISTINCT'];
+
+        operators.forEach(kw => {
+            const regex = new RegExp(`\\b(${kw})\\b`, 'gi');
+            highlighted = highlighted.replace(regex, '<span class="gb-sql-operator">$1</span>');
+        });
+
+        // Functions
+        const functions = ['COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'DATE', 'NOW', 'CONCAT', 'SUBSTRING', 'TRIM',
+            'UPPER', 'LOWER', 'COALESCE', 'IFNULL', 'IF', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END'];
+
+        functions.forEach(fn => {
+            const regex = new RegExp(`\\b(${fn})\\s*(?=\\()`, 'gi');
+            highlighted = highlighted.replace(regex, '<span class="gb-sql-function">$1</span>');
+        });
+
+        // Restore strings
+        strings.forEach((str, i) => {
+            highlighted = highlighted.replace(`___STR${i}___`, str);
+        });
+
+        return highlighted;
+    }
+
+    /**
      * Clear query and reset to demo data
      */
     onClear() {
@@ -281,6 +375,9 @@ class QueryEditor extends BaseComponent {
         // Clear state
         stateManager.setQuery('');
         stateManager.clearData();
+
+        // Update highlight
+        if (this.updateHighlight) this.updateHighlight();
 
         // Clear status
         this.clearStatus();
@@ -311,6 +408,7 @@ class QueryEditor extends BaseComponent {
     setQuery(sql) {
         this.textarea.value = sql;
         stateManager.setQuery(sql);
+        if (this.updateHighlight) this.updateHighlight();
     }
 
     getQuery() {
@@ -338,6 +436,7 @@ class QueryEditor extends BaseComponent {
         this.textarea.selectionStart = this.textarea.selectionEnd = start + insertText.length;
         this.textarea.focus();
         stateManager.setQuery(this.textarea.value);
+        if (this.updateHighlight) this.updateHighlight();
     }
 }
 

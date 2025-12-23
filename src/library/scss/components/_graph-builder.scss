@@ -132,6 +132,25 @@
     flex-direction: column;
 }
 
+// Data panel header
+.gb-data-panel-header {
+    @include flex-between;
+    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+    background: var(--gb-bg-tertiary);
+    border-bottom: 1px solid var(--gb-border-color);
+    flex-shrink: 0;
+}
+
+.gb-data-panel-title {
+    font-size: var(--gb-font-size-sm);
+    font-weight: 600;
+    color: var(--gb-text-primary);
+}
+
+.gb-data-importer-wrapper {
+    display: flex;
+}
+
 // Data panel - stacked layout for table selector and query (equal heights)
 .gb-sidebar-panel--data {
     .gb-data-explorer-wrapper {

@@ -1,0 +1,448 @@
+@use '../abstracts/mixins' as *;
+
+// Import button
+.gb-data-importer {
+    display: inline-flex;
+}
+
+.gb-import-btn {
+    @include button-reset;
+    @include flex-center;
+    gap: var(--gb-spacing-xs);
+    padding: var(--gb-spacing-xs) var(--gb-spacing-sm);
+    background: var(--gb-bg-tertiary);
+    color: var(--gb-text-secondary);
+    font-size: var(--gb-font-size-sm);
+    font-weight: 500;
+    border-radius: var(--gb-radius-md);
+    border: 1px solid var(--gb-border-color);
+    @include transition-fast;
+
+    &:hover {
+        background: var(--gb-bg-hover);
+        color: var(--gb-text-primary);
+        border-color: var(--gb-primary);
+    }
+
+    &:focus-visible {
+        @include focus-ring;
+    }
+}
+
+.gb-import-btn-icon {
+    @include flex-center;
+    width: 16px;
+    height: 16px;
+
+    svg {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+// Modal backdrop
+.gb-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: var(--gb-spacing-lg);
+}
+
+// Modal
+.gb-modal {
+    background: var(--gb-bg-primary);
+    border-radius: var(--gb-radius-lg);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.gb-modal-header {
+    @include flex-between;
+    padding: var(--gb-spacing-md) var(--gb-spacing-lg);
+    border-bottom: 1px solid var(--gb-border-color);
+    flex-shrink: 0;
+}
+
+.gb-modal-title {
+    font-size: var(--gb-font-size-lg);
+    font-weight: 600;
+    color: var(--gb-text-primary);
+    margin: 0;
+}
+
+.gb-modal-close {
+    @include button-reset;
+    @include flex-center;
+    width: 32px;
+    height: 32px;
+    font-size: 24px;
+    color: var(--gb-text-muted);
+    border-radius: var(--gb-radius-sm);
+    @include transition-fast;
+
+    &:hover {
+        background: var(--gb-bg-hover);
+        color: var(--gb-text-primary);
+    }
+}
+
+.gb-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--gb-spacing-lg);
+    @include custom-scrollbar;
+}
+
+.gb-modal-footer {
+    @include flex-center;
+    justify-content: flex-end;
+    gap: var(--gb-spacing-sm);
+    padding: var(--gb-spacing-md) var(--gb-spacing-lg);
+    border-top: 1px solid var(--gb-border-color);
+    flex-shrink: 0;
+    background: var(--gb-bg-secondary);
+}
+
+// Import tabs
+.gb-import-tabs {
+    display: flex;
+    gap: 2px;
+    padding: var(--gb-spacing-sm);
+    background: var(--gb-bg-secondary);
+    border-bottom: 1px solid var(--gb-border-color);
+    flex-shrink: 0;
+    overflow-x: auto;
+}
+
+.gb-import-tab {
+    @include button-reset;
+    @include flex-center;
+    gap: var(--gb-spacing-xs);
+    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+    font-size: var(--gb-font-size-sm);
+    font-weight: 500;
+    color: var(--gb-text-muted);
+    border-radius: var(--gb-radius-sm);
+    white-space: nowrap;
+    @include transition-fast;
+
+    &:hover {
+        color: var(--gb-text-primary);
+        background: var(--gb-bg-hover);
+    }
+
+    &--active {
+        color: var(--gb-text-primary);
+        background: var(--gb-bg-primary);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.gb-import-tab-icon {
+    font-size: 14px;
+}
+
+// Import form
+.gb-import-form {
+    @include flex-column;
+    gap: var(--gb-spacing-md);
+}
+
+.gb-form-group {
+    @include flex-column;
+    gap: var(--gb-spacing-xs);
+}
+
+.gb-form-row {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.gb-form-label {
+    font-size: var(--gb-font-size-sm);
+    font-weight: 500;
+    color: var(--gb-text-primary);
+}
+
+.gb-form-label-inline {
+    font-size: var(--gb-font-size-sm);
+    color: var(--gb-text-secondary);
+    margin-right: var(--gb-spacing-xs);
+}
+
+.gb-form-input {
+    @include input-reset;
+    width: 100%;
+    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+    font-size: var(--gb-font-size-sm);
+    color: var(--gb-text-primary);
+    background: var(--gb-bg-secondary);
+    border: 1px solid var(--gb-border-color);
+    border-radius: var(--gb-radius-md);
+    @include transition-fast;
+
+    &::placeholder {
+        color: var(--gb-text-placeholder);
+    }
+
+    &:focus {
+        outline: none;
+        border-color: var(--gb-primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+}
+
+.gb-form-select {
+    @include input-reset;
+    padding: var(--gb-spacing-xs) var(--gb-spacing-sm);
+    font-size: var(--gb-font-size-sm);
+    color: var(--gb-text-primary);
+    background: var(--gb-bg-secondary);
+    border: 1px solid var(--gb-border-color);
+    border-radius: var(--gb-radius-sm);
+    cursor: pointer;
+    min-width: 80px;
+
+    &:focus {
+        outline: none;
+        border-color: var(--gb-primary);
+    }
+}
+
+.gb-form-checkbox {
+    @include flex-center;
+    gap: var(--gb-spacing-xs);
+    font-size: var(--gb-font-size-sm);
+    color: var(--gb-text-secondary);
+    cursor: pointer;
+    margin-left: var(--gb-spacing-md);
+
+    input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--gb-primary);
+        cursor: pointer;
+    }
+}
+
+.gb-file-input {
+    font-size: var(--gb-font-size-sm);
+    color: var(--gb-text-secondary);
+
+    &::file-selector-button {
+        @include button-reset;
+        padding: var(--gb-spacing-xs) var(--gb-spacing-md);
+        margin-right: var(--gb-spacing-sm);
+        background: var(--gb-primary);
+        color: white;
+        font-size: var(--gb-font-size-sm);
+        font-weight: 500;
+        border-radius: var(--gb-radius-md);
+        cursor: pointer;
+        @include transition-fast;
+
+        &:hover {
+            background: var(--gb-primary-dark);
+        }
+    }
+}
+
+.gb-import-textarea {
+    @include input-reset;
+    @include custom-scrollbar;
+    width: 100%;
+    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+    font-family: var(--gb-font-mono);
+    font-size: var(--gb-font-size-sm);
+    line-height: 1.5;
+    color: var(--gb-text-primary);
+    background: var(--gb-bg-secondary);
+    border: 1px solid var(--gb-border-color);
+    border-radius: var(--gb-radius-md);
+    resize: vertical;
+    min-height: 120px;
+
+    &::placeholder {
+        color: var(--gb-text-placeholder);
+    }
+
+    &:focus {
+        outline: none;
+        border-color: var(--gb-primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    &--small {
+        min-height: 80px;
+    }
+}
+
+.gb-import-divider {
+    display: flex;
+    align-items: center;
+    gap: var(--gb-spacing-md);
+    color: var(--gb-text-muted);
+    font-size: var(--gb-font-size-sm);
+
+    &::before,
+    &::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--gb-border-color);
+    }
+}
+
+.gb-import-note {
+    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+    background: var(--gb-bg-tertiary);
+    border-radius: var(--gb-radius-md);
+    font-size: var(--gb-font-size-xs);
+    color: var(--gb-text-secondary);
+    line-height: 1.5;
+
+    code {
+        font-family: var(--gb-font-mono);
+        font-size: 0.9em;
+        background: var(--gb-bg-secondary);
+        padding: 2px 4px;
+        border-radius: var(--gb-radius-sm);
+    }
+
+    a {
+        color: var(--gb-primary);
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+.gb-import-help {
+    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+    background: var(--gb-bg-tertiary);
+    border-radius: var(--gb-radius-md);
+    font-size: var(--gb-font-size-xs);
+    color: var(--gb-text-secondary);
+    line-height: 1.6;
+
+    ul {
+        margin: var(--gb-spacing-xs) 0 0;
+        padding-left: var(--gb-spacing-lg);
+    }
+
+    li {
+        margin-bottom: var(--gb-spacing-xs);
+    }
+
+    code {
+        font-family: var(--gb-font-mono);
+        font-size: 0.9em;
+        background: var(--gb-bg-secondary);
+        padding: 2px 4px;
+        border-radius: var(--gb-radius-sm);
+    }
+}
+
+// Buttons
+.gb-btn {
+    @include button-reset;
+    @include flex-center;
+    gap: var(--gb-spacing-xs);
+    padding: var(--gb-spacing-sm) var(--gb-spacing-lg);
+    font-size: var(--gb-font-size-sm);
+    font-weight: 500;
+    border-radius: var(--gb-radius-md);
+    @include transition-fast;
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.gb-btn-primary {
+    background: var(--gb-primary);
+    color: white;
+
+    &:hover:not(:disabled) {
+        background: var(--gb-primary-dark);
+    }
+
+    &:focus-visible {
+        @include focus-ring;
+    }
+}
+
+.gb-btn-secondary {
+    background: var(--gb-bg-secondary);
+    color: var(--gb-text-primary);
+    border: 1px solid var(--gb-border-color);
+
+    &:hover:not(:disabled) {
+        background: var(--gb-bg-hover);
+        border-color: var(--gb-text-muted);
+    }
+
+    &:focus-visible {
+        @include focus-ring;
+    }
+}
+
+// Status messages
+.gb-import-status {
+    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+    border-radius: var(--gb-radius-md);
+    font-size: var(--gb-font-size-sm);
+    margin-top: var(--gb-spacing-sm);
+
+    &:empty {
+        display: none;
+    }
+
+    &--loading {
+        background: var(--gb-bg-tertiary);
+        color: var(--gb-text-secondary);
+    }
+
+    &--success {
+        background: rgba(82, 196, 26, 0.1);
+        color: var(--gb-success);
+    }
+
+    &--error {
+        background: rgba(255, 77, 79, 0.1);
+        color: var(--gb-danger);
+    }
+}
+
+.gb-import-error {
+    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+    background: rgba(255, 77, 79, 0.1);
+    color: var(--gb-danger);
+    border-radius: var(--gb-radius-md);
+    font-size: var(--gb-font-size-sm);
+    margin-bottom: var(--gb-spacing-md);
+}
+
+// Dark theme adjustments
+[data-theme="dark"] {
+    .gb-modal-backdrop {
+        background: rgba(0, 0, 0, 0.7);
+    }
+
+    .gb-modal {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+}

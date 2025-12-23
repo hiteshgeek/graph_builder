@@ -4,6 +4,7 @@ import { TypeSwitcher } from './TypeSwitcher.js';
 import { ConfigPanel } from './ConfigPanel.js';
 import { DataExplorer } from './DataExplorer.js';
 import { DataMapping } from './DataMapping.js';
+import { DataImporter } from './DataImporter.js';
 import { QueryEditor } from './QueryEditor.js';
 import { PreviewPanel } from './PreviewPanel.js';
 import { ThemeSwitcher } from './ThemeSwitcher.js';
@@ -26,6 +27,7 @@ class GraphBuilder extends BaseComponent {
         this.configPanel = null;
         this.dataExplorer = null;
         this.dataMapping = null;
+        this.dataImporter = null;
         this.queryEditor = null;
         this.previewPanel = null;
         this.themeSwitcher = null;
@@ -112,6 +114,14 @@ class GraphBuilder extends BaseComponent {
             className: 'gb-sidebar-panel gb-sidebar-panel--data',
             'data-panel': 'data'
         });
+
+        // Data panel header with import button
+        const dataPanelHeader = this.createElement('div', { className: 'gb-data-panel-header' });
+        const dataPanelTitle = this.createElement('span', { className: 'gb-data-panel-title' }, 'Data Source');
+        this.dataImporterContainer = this.createElement('div', { className: 'gb-data-importer-wrapper' });
+        dataPanelHeader.appendChild(dataPanelTitle);
+        dataPanelHeader.appendChild(this.dataImporterContainer);
+
         this.dataExplorerContainer = this.createElement('div', { className: 'gb-data-explorer-wrapper' });
 
         // Resizer between data explorer and query
@@ -119,6 +129,7 @@ class GraphBuilder extends BaseComponent {
         this.initDataResizer(dataResizer);
 
         this.queryContainer = this.createElement('div', { className: 'gb-query-wrapper' });
+        this.tabPanels.data.appendChild(dataPanelHeader);
         this.tabPanels.data.appendChild(this.dataExplorerContainer);
         this.tabPanels.data.appendChild(dataResizer);
         this.tabPanels.data.appendChild(this.queryContainer);
@@ -232,6 +243,10 @@ class GraphBuilder extends BaseComponent {
             apiBase: this.options.apiBase || ''
         });
         this.queryEditor.init();
+
+        // Data importer
+        this.dataImporter = new DataImporter(this.dataImporterContainer);
+        this.dataImporter.init();
 
         // Data explorer
         this.dataExplorer = new DataExplorer(this.dataExplorerContainer, {
@@ -461,6 +476,10 @@ class GraphBuilder extends BaseComponent {
         if (this.dataMapping) {
             this.dataMapping.destroy();
             this.dataMapping = null;
+        }
+        if (this.dataImporter) {
+            this.dataImporter.destroy();
+            this.dataImporter = null;
         }
         if (this.queryEditor) {
             this.queryEditor.destroy();
