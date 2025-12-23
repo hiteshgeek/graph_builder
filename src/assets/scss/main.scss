@@ -1,0 +1,11 @@
+// Graph Builder Application Styles
+// App-specific overrides and additions
+
+// Import the library styles
+@use '../../library/scss/main';
+
+// App-specific styles (if needed)
+#graph-builder {
+    width: 100%;
+    height: 100vh;
+}

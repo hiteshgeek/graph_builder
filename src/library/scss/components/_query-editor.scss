@@ -1,0 +1,159 @@
+@use '../abstracts/mixins' as *;
+
+.gb-query-editor {
+    @include flex-column;
+    height: 100%;
+    min-height: 180px;
+    max-height: 280px;
+    overflow: hidden;
+    background: var(--gb-bg-secondary);
+    border-radius: var(--gb-radius-md);
+
+    &--loading {
+        .gb-query-input {
+            opacity: 0.7;
+        }
+    }
+}
+
+.gb-query-header {
+    @include flex-between;
+    flex-wrap: wrap;
+    gap: var(--gb-spacing-sm);
+    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+    border-bottom: 1px solid var(--gb-border-color);
+    flex-shrink: 0;
+    background: var(--gb-bg-tertiary);
+    border-radius: var(--gb-radius-md) var(--gb-radius-md) 0 0;
+}
+
+.gb-query-title {
+    font-size: var(--gb-font-size-sm);
+    font-weight: 600;
+    color: var(--gb-text-primary);
+}
+
+.gb-query-hint {
+    font-size: var(--gb-font-size-xs);
+    color: var(--gb-text-muted);
+    margin-left: auto;
+    margin-right: var(--gb-spacing-sm);
+}
+
+.gb-query-execute-btn {
+    @include button-reset;
+    @include transition-fast;
+    padding: var(--gb-spacing-xs) var(--gb-spacing-md);
+    background: var(--gb-primary);
+    color: #fff;
+    font-size: var(--gb-font-size-sm);
+    font-weight: 500;
+    border-radius: var(--gb-radius-md);
+
+    &:hover:not(:disabled) {
+        background: var(--gb-primary-dark);
+    }
+
+    &:focus-visible {
+        @include focus-ring;
+    }
+
+    &:disabled {
+        background: var(--gb-text-muted);
+    }
+}
+
+// Editor container with syntax highlighting overlay
+.gb-query-editor-container {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+}
+
+// Highlighted code layer (behind textarea)
+.gb-query-highlight {
+    @include custom-scrollbar;
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+    font-family: var(--gb-font-mono);
+    font-size: var(--gb-font-size-sm);
+    line-height: 1.6;
+    background: var(--gb-bg-secondary);
+    overflow: auto;
+    pointer-events: none;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+
+    code {
+        font-family: inherit;
+        font-size: inherit;
+        background: none;
+        padding: 0;
+    }
+}
+
+// Textarea layer (on top, transparent text when highlighting)
+.gb-query-input {
+    @include input-reset;
+    @include custom-scrollbar;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+    font-family: var(--gb-font-mono);
+    font-size: var(--gb-font-size-sm);
+    line-height: 1.6;
+    color: var(--gb-text-primary);
+    background: transparent;
+    resize: none;
+    z-index: 1;
+    caret-color: var(--gb-text-primary);
+
+    // When hljs is active, make text transparent so highlighting shows through
+    .hljs-active & {
+        color: transparent;
+    }
+
+    &::placeholder {
+        color: var(--gb-text-placeholder);
+    }
+}
+
+.gb-query-status {
+    @include flex-column;
+    gap: var(--gb-spacing-xs);
+    padding: var(--gb-spacing-xs) var(--gb-spacing-md);
+    border-top: 1px solid var(--gb-border-color);
+    flex-shrink: 0;
+    background: var(--gb-bg-secondary);
+    border-radius: 0 0 var(--gb-radius-md) var(--gb-radius-md);
+
+    &:empty {
+        display: none;
+    }
+}
+
+.gb-query-error,
+.gb-query-warning,
+.gb-query-success {
+    font-size: var(--gb-font-size-xs);
+    padding: var(--gb-spacing-xs) var(--gb-spacing-sm);
+    border-radius: var(--gb-radius-sm);
+}
+
+.gb-query-error {
+    color: var(--gb-danger);
+    background: rgba(255, 77, 79, 0.1);
+}
+
+.gb-query-warning {
+    color: var(--gb-warning);
+    background: rgba(250, 173, 20, 0.1);
+}
+
+.gb-query-success {
+    color: var(--gb-success);
+    background: rgba(82, 196, 26, 0.1);
+}

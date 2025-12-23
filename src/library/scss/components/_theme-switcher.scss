@@ -1,0 +1,44 @@
+@use '../abstracts/mixins' as *;
+
+.gb-theme-switcher {
+    @include flex-center;
+    gap: 2px;
+    padding: 2px;
+    background: var(--gb-bg-secondary);
+    border-radius: var(--gb-radius-md);
+}
+
+.gb-theme-btn {
+    @include button-reset;
+    @include flex-center;
+    @include transition-fast;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--gb-radius-sm);
+    color: var(--gb-text-muted);
+
+    &:hover {
+        background: var(--gb-bg-hover);
+        color: var(--gb-text-secondary);
+    }
+
+    &:focus-visible {
+        @include focus-ring;
+    }
+
+    &--active {
+        background: var(--gb-bg-primary);
+        color: var(--gb-primary);
+        box-shadow: var(--gb-shadow-sm);
+
+        &:hover {
+            background: var(--gb-bg-primary);
+            color: var(--gb-primary);
+        }
+    }
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+}

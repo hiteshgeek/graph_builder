@@ -1,0 +1,93 @@
+// Flexbox utilities
+@mixin flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@mixin flex-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+@mixin flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+// Transitions
+@mixin transition($props: all) {
+    transition: $props var(--gb-transition-normal);
+}
+
+@mixin transition-fast($props: all) {
+    transition: $props var(--gb-transition-fast);
+}
+
+// Focus styles
+@mixin focus-ring {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--gb-primary-light);
+}
+
+// Scrollbar styling
+@mixin custom-scrollbar {
+    &::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--gb-border-color);
+        border-radius: 3px;
+
+        &:hover {
+            background: var(--gb-text-muted);
+        }
+    }
+}
+
+// Text ellipsis
+@mixin ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// Button reset
+@mixin button-reset {
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+}
+
+// Input reset
+@mixin input-reset {
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    color: inherit;
+    outline: none;
+}
+
+// Card style
+@mixin card {
+    background: var(--gb-bg-primary);
+    border: 1px solid var(--gb-border-color);
+    border-radius: var(--gb-radius-lg);
+    box-shadow: var(--gb-shadow-sm);
+}

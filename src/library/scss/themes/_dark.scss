@@ -1,0 +1,27 @@
+// Dark theme overrides
+[data-theme="dark"] {
+    // Background colors
+    --gb-bg-primary: #1a1a2e;
+    --gb-bg-secondary: #16213e;
+    --gb-bg-tertiary: #0f3460;
+    --gb-bg-hover: #1f2937;
+
+    // Text colors
+    --gb-text-primary: #f3f4f6;
+    --gb-text-secondary: #9ca3af;
+    --gb-text-muted: #6b7280;
+    --gb-text-placeholder: #4b5563;
+
+    // Border colors
+    --gb-border-color: #374151;
+    --gb-border-color-light: #4b5563;
+
+    // Primary adjustments
+    --gb-primary-light: #7c8fd4;
+
+    // Shadows (darker for dark mode)
+    --gb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --gb-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+    --gb-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+    --gb-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.6);
+}

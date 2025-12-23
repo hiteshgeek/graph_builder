@@ -1,0 +1,57 @@
+@use '../abstracts/mixins' as *;
+
+.gb-config-panel {
+    @include flex-column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.gb-config-header {
+    @include flex-between;
+    padding: var(--gb-spacing-md);
+    font-size: var(--gb-font-size-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gb-text-muted);
+    border-bottom: 1px solid var(--gb-border-color);
+    flex-shrink: 0;
+}
+
+.gb-config-content {
+    @include flex-column;
+    @include custom-scrollbar;
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--gb-spacing-md);
+    gap: var(--gb-spacing-md);
+}
+
+.gb-config-base,
+.gb-config-type {
+    @include flex-column;
+    gap: var(--gb-spacing-md);
+}
+
+.gb-base-config,
+.gb-type-config {
+    @include flex-column;
+    gap: var(--gb-spacing-md);
+}
+
+// Form sections
+.gb-form-section {
+    @include flex-column;
+    gap: var(--gb-spacing-sm);
+}
+
+.gb-form-section-header {
+    font-size: var(--gb-font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gb-text-muted);
+    padding-bottom: var(--gb-spacing-xs);
+    border-bottom: 1px solid var(--gb-border-color-light);
+    margin-bottom: var(--gb-spacing-xs);
+}

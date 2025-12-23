@@ -1,0 +1,179 @@
+@use '../abstracts/mixins' as *;
+
+// Form group
+.gb-form-group {
+    @include flex-column;
+    gap: var(--gb-spacing-xs);
+}
+
+.gb-form-group--checkbox {
+    flex-direction: row;
+    align-items: center;
+}
+
+.gb-form-group--color {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+// Label
+.gb-form-label {
+    font-size: var(--gb-font-size-sm);
+    font-weight: 500;
+    color: var(--gb-text-secondary);
+}
+
+.gb-form-label-wrapper {
+    @include flex-between;
+}
+
+// Text input
+.gb-form-input {
+    @include transition-fast;
+    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+    background: var(--gb-bg-secondary);
+    border: 1px solid var(--gb-border-color);
+    border-radius: var(--gb-radius-md);
+    font-size: var(--gb-font-size-sm);
+    color: var(--gb-text-primary);
+
+    &::placeholder {
+        color: var(--gb-text-placeholder);
+    }
+
+    &:focus {
+        @include focus-ring;
+        border-color: var(--gb-primary);
+    }
+}
+
+// Select
+.gb-form-select {
+    @include transition-fast;
+    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+    padding-right: var(--gb-spacing-xl);
+    background: var(--gb-bg-secondary);
+    border: 1px solid var(--gb-border-color);
+    border-radius: var(--gb-radius-md);
+    font-size: var(--gb-font-size-sm);
+    color: var(--gb-text-primary);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23909399' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+
+    &:focus {
+        @include focus-ring;
+        border-color: var(--gb-primary);
+    }
+}
+
+// Checkbox
+.gb-form-checkbox-label {
+    @include flex-center;
+    gap: var(--gb-spacing-sm);
+    cursor: pointer;
+}
+
+.gb-form-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--gb-primary);
+    cursor: pointer;
+}
+
+.gb-form-checkbox-text {
+    font-size: var(--gb-font-size-sm);
+    color: var(--gb-text-secondary);
+}
+
+// Range slider
+.gb-form-range {
+    width: 100%;
+    height: 4px;
+    background: var(--gb-bg-tertiary);
+    border-radius: 2px;
+    appearance: none;
+    cursor: pointer;
+
+    &::-webkit-slider-thumb {
+        appearance: none;
+        width: 14px;
+        height: 14px;
+        background: var(--gb-primary);
+        border-radius: 50%;
+        cursor: pointer;
+        @include transition-fast;
+
+        &:hover {
+            transform: scale(1.1);
+        }
+    }
+
+    &::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
+        background: var(--gb-primary);
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+}
+
+.gb-form-range-value {
+    font-size: var(--gb-font-size-xs);
+    font-weight: 500;
+    color: var(--gb-text-muted);
+    min-width: 28px;
+    text-align: right;
+}
+
+// Color picker
+.gb-form-color {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 2px solid var(--gb-border-color);
+    border-radius: var(--gb-radius-md);
+    cursor: pointer;
+    overflow: hidden;
+
+    &::-webkit-color-swatch-wrapper {
+        padding: 0;
+    }
+
+    &::-webkit-color-swatch {
+        border: none;
+        border-radius: var(--gb-radius-sm);
+    }
+}
+
+// Color palette
+.gb-form-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gb-spacing-xs);
+}
+
+.gb-form-palette-item {
+    position: relative;
+}
+
+.gb-form-palette-color {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 2px solid var(--gb-border-color);
+    border-radius: var(--gb-radius-sm);
+    cursor: pointer;
+
+    &::-webkit-color-swatch-wrapper {
+        padding: 0;
+    }
+
+    &::-webkit-color-swatch {
+        border: none;
+    }
+}

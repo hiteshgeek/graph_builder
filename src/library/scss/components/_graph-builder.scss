@@ -1,0 +1,137 @@
+@use '../abstracts/mixins' as *;
+
+// Main container
+.gb-container {
+    @include flex-column;
+    height: 100vh;
+    min-height: 600px;
+    background: var(--gb-bg-secondary);
+}
+
+// Header
+.gb-header {
+    @include flex-between;
+    height: var(--gb-header-height);
+    padding: 0 var(--gb-spacing-lg);
+    background: var(--gb-bg-primary);
+    border-bottom: 1px solid var(--gb-border-color);
+    flex-shrink: 0;
+}
+
+.gb-header-title {
+    @include flex-center;
+    gap: var(--gb-spacing-md);
+}
+
+.gb-logo {
+    font-size: var(--gb-font-size-xl);
+    font-weight: 600;
+    color: var(--gb-text-primary);
+}
+
+.gb-header-actions {
+    @include flex-center;
+    gap: var(--gb-spacing-lg);
+}
+
+.gb-header-types {
+    @include flex-center;
+}
+
+.gb-header-theme {
+    @include flex-center;
+}
+
+// Main layout
+.gb-main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+// Left sidebar (config panel)
+.gb-sidebar {
+    width: var(--gb-sidebar-width);
+    flex-shrink: 0;
+    background: var(--gb-bg-primary);
+    border-right: 1px solid var(--gb-border-color);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+// Config wrapper in sidebar
+.gb-config-wrapper {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+// Middle column (query/data section)
+.gb-middle {
+    width: var(--gb-middle-width, 320px);
+    flex-shrink: 0;
+    background: var(--gb-bg-primary);
+    border-right: 1px solid var(--gb-border-color);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+// Query wrapper in middle column
+.gb-query-wrapper {
+    flex-shrink: 0;
+    padding: var(--gb-spacing-md);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 280px;
+}
+
+// Right column (preview)
+.gb-content {
+    @include flex-column;
+    flex: 1;
+    overflow: hidden;
+}
+
+// Preview wrapper
+.gb-preview-wrapper {
+    flex: 1;
+    padding: var(--gb-spacing-md);
+    overflow: hidden;
+}
+
+// Responsive
+@media (max-width: 1200px) {
+    .gb-middle {
+        width: 280px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .gb-main {
+        flex-direction: column;
+    }
+
+    .gb-sidebar {
+        width: 100%;
+        height: auto;
+        max-height: 35vh;
+        border-right: none;
+        border-bottom: 1px solid var(--gb-border-color);
+    }
+
+    .gb-middle {
+        width: 100%;
+        height: auto;
+        max-height: 30vh;
+        border-right: none;
+        border-bottom: 1px solid var(--gb-border-color);
+    }
+
+    .gb-preview-wrapper {
+        min-height: 300px;
+    }
+}
