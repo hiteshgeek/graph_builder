@@ -23,6 +23,8 @@ class ThemeSwitcher extends BaseComponent {
             mediaQuery.addEventListener('change', () => {
                 if (this.currentTheme === THEMES.SYSTEM) {
                     this.applyTheme();
+                    // Emit event so charts re-render with new colors
+                    eventBus.emit(EVENTS.THEME_CHANGED, { theme: this.getEffectiveTheme() });
                 }
             });
         }

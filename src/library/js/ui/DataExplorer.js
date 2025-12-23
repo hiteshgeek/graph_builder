@@ -3,7 +3,7 @@ import { ApiClient } from '../data/ApiClient.js';
 import { debounce } from '../utils/helpers.js';
 
 /**
- * DataExplorer - Database browser with table search and field display
+ * DataExplorer - Database browser with table search dropdown and field display
  */
 class DataExplorer extends BaseComponent {
     constructor(container, options = {}) {
@@ -17,11 +17,17 @@ class DataExplorer extends BaseComponent {
         this.isLoadingFields = false;
         this.onFieldClick = options.onFieldClick || null;
         this.onTableSelect = options.onTableSelect || null;
+        this.queryEditor = null;
+        this.dropdownVisible = false;
     }
 
     init() {
         super.init();
         this.loadTables();
+    }
+
+    setQueryEditor(queryEditor) {
+        this.queryEditor = queryEditor;
     }
 
     render() {
@@ -33,29 +39,50 @@ class DataExplorer extends BaseComponent {
         this.dbNameEl.innerHTML = `<span class="gb-db-icon">${this.getDbIcon()}</span><span class="gb-db-label">Loading...</span>`;
         this.dbInfoSection.appendChild(this.dbNameEl);
 
-        // Table search section
+        // Table search section with dropdown
         this.searchSection = this.createElement('div', { className: 'gb-table-search' });
-        const searchLabel = this.createElement('label', { className: 'gb-search-label' }, 'Tables');
+        const searchLabel = this.createElement('label', { className: 'gb-search-label' }, 'Select Table');
+
+        // Search container for input + dropdown
+        const searchContainer = this.createElement('div', { className: 'gb-search-container' });
+
         this.searchInput = this.createElement('input', {
             type: 'text',
             className: 'gb-search-input',
-            placeholder: 'Search tables...'
+            placeholder: 'Search and select a table...'
         });
+
+        // Dropdown for search results
+        this.dropdown = this.createElement('div', { className: 'gb-table-dropdown' });
+        this.dropdown.style.display = 'none';
 
         const debouncedSearch = debounce((value) => this.loadTables(value), 300);
+
         this.bindEvent(this.searchInput, 'input', (e) => {
             debouncedSearch(e.target.value);
+            this.showDropdown();
         });
 
+        this.bindEvent(this.searchInput, 'focus', () => {
+            if (this.tables.length > 0) {
+                this.showDropdown();
+            }
+        });
+
+        // Close dropdown when clicking outside
+        this.bindEvent(document, 'click', (e) => {
+            if (!this.searchSection.contains(e.target)) {
+                this.hideDropdown();
+            }
+        });
+
+        searchContainer.appendChild(this.searchInput);
+        searchContainer.appendChild(this.dropdown);
+
         this.searchSection.appendChild(searchLabel);
-        this.searchSection.appendChild(this.searchInput);
+        this.searchSection.appendChild(searchContainer);
 
-        // Tables list
-        this.tablesSection = this.createElement('div', { className: 'gb-tables-section' });
-        this.tablesList = this.createElement('div', { className: 'gb-tables-list' });
-        this.tablesSection.appendChild(this.tablesList);
-
-        // Fields section
+        // Fields section (shown when table is selected)
         this.fieldsSection = this.createElement('div', { className: 'gb-fields-section' });
         this.fieldsHeader = this.createElement('div', { className: 'gb-fields-header' });
         this.fieldsList = this.createElement('div', { className: 'gb-fields-list' });
@@ -65,17 +92,27 @@ class DataExplorer extends BaseComponent {
 
         this.element.appendChild(this.dbInfoSection);
         this.element.appendChild(this.searchSection);
-        this.element.appendChild(this.tablesSection);
         this.element.appendChild(this.fieldsSection);
 
         this.container.appendChild(this.element);
+    }
+
+    showDropdown() {
+        this.dropdown.style.display = 'block';
+        this.dropdownVisible = true;
+    }
+
+    hideDropdown() {
+        this.dropdown.style.display = 'none';
+        this.dropdownVisible = false;
     }
 
     async loadTables(search = '') {
         if (this.isLoadingTables) return;
 
         this.isLoadingTables = true;
-        this.tablesList.innerHTML = '<div class="gb-loading">Loading tables...</div>';
+        this.dropdown.innerHTML = '<div class="gb-loading">Loading tables...</div>';
+        this.showDropdown();
 
         try {
             const response = await this.apiClient.get('api/schema/tables.php', { search });
@@ -84,12 +121,12 @@ class DataExplorer extends BaseComponent {
                 this.database = response.database;
                 this.tables = response.tables;
                 this.updateDbInfo();
-                this.renderTables();
+                this.renderDropdown();
             } else {
-                this.tablesList.innerHTML = `<div class="gb-error">${response.error}</div>`;
+                this.dropdown.innerHTML = `<div class="gb-error">${response.error}</div>`;
             }
         } catch (error) {
-            this.tablesList.innerHTML = `<div class="gb-error">${error.message}</div>`;
+            this.dropdown.innerHTML = `<div class="gb-error">${error.message}</div>`;
         } finally {
             this.isLoadingTables = false;
         }
@@ -101,17 +138,17 @@ class DataExplorer extends BaseComponent {
         }
     }
 
-    renderTables() {
-        this.tablesList.innerHTML = '';
+    renderDropdown() {
+        this.dropdown.innerHTML = '';
 
         if (this.tables.length === 0) {
-            this.tablesList.innerHTML = '<div class="gb-no-results">No tables found</div>';
+            this.dropdown.innerHTML = '<div class="gb-no-results">No tables found</div>';
             return;
         }
 
         this.tables.forEach(table => {
             const tableEl = this.createElement('div', {
-                className: `gb-table-item ${this.selectedTable === table.name ? 'gb-table-item--selected' : ''}`,
+                className: 'gb-dropdown-item',
                 dataset: { table: table.name }
             });
 
@@ -129,26 +166,31 @@ class DataExplorer extends BaseComponent {
 
             this.bindEvent(tableEl, 'click', () => this.selectTable(table.name));
 
-            this.tablesList.appendChild(tableEl);
+            this.dropdown.appendChild(tableEl);
         });
     }
 
     async selectTable(tableName) {
-        if (this.selectedTable === tableName) {
-            // Deselect
-            this.selectedTable = null;
-            this.fields = [];
-            this.fieldsSection.style.display = 'none';
-            this.renderTables();
-            return;
-        }
-
         this.selectedTable = tableName;
-        this.renderTables();
+        this.searchInput.value = tableName;
+        this.hideDropdown();
+
+        // Load fields
         await this.loadFields(tableName);
+
+        // Generate and set the query
+        this.generateQuery(tableName);
 
         if (this.onTableSelect) {
             this.onTableSelect(tableName, this.fields);
+        }
+    }
+
+    generateQuery(tableName) {
+        const query = `SELECT * FROM ${tableName} LIMIT 10`;
+
+        if (this.queryEditor) {
+            this.queryEditor.setQuery(query);
         }
     }
 

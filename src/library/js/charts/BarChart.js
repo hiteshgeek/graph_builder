@@ -14,19 +14,23 @@ class BarChart extends BaseChart {
      * @returns {Object}
      */
     transformData(rawData) {
+        const axisLabelColor = this.getTextColor();
+        const axisLineColor = this.getBorderColor();
+        const splitLineColor = this.getBorderColorLight();
+
         if (!rawData || rawData.length === 0) {
             return {
                 xAxis: {
                     type: 'category',
                     data: [],
-                    axisLine: { show: true },
-                    axisLabel: { show: true }
+                    axisLine: { show: true, lineStyle: { color: axisLineColor } },
+                    axisLabel: { show: true, color: axisLabelColor }
                 },
                 yAxis: {
                     type: 'value',
-                    axisLine: { show: true },
-                    axisLabel: { show: true },
-                    splitLine: { show: true }
+                    axisLine: { show: true, lineStyle: { color: axisLineColor } },
+                    axisLabel: { show: true, color: axisLabelColor },
+                    splitLine: { show: true, lineStyle: { color: splitLineColor } }
                 },
                 series: []
             };
@@ -60,15 +64,15 @@ class BarChart extends BaseChart {
         const categoryAxis = {
             type: 'category',
             data: categories,
-            axisLine: { show: true },
-            axisLabel: { show: true }
+            axisLine: { show: true, lineStyle: { color: axisLineColor } },
+            axisLabel: { show: true, color: axisLabelColor }
         };
 
         const valueAxis = {
             type: 'value',
-            axisLine: { show: true },
-            axisLabel: { show: true },
-            splitLine: { show: true }
+            axisLine: { show: true, lineStyle: { color: axisLineColor } },
+            axisLabel: { show: true, color: axisLabelColor },
+            splitLine: { show: true, lineStyle: { color: splitLineColor } }
         };
 
         if (isHorizontal) {

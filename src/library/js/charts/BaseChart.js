@@ -112,6 +112,50 @@ class BaseChart {
     }
 
     /**
+     * Get computed color from CSS variable
+     * @param {string} varName
+     * @param {string} fallback
+     * @returns {string}
+     */
+    getCssVar(varName, fallback = '#333') {
+        const style = getComputedStyle(document.documentElement);
+        const value = style.getPropertyValue(varName).trim();
+        return value || fallback;
+    }
+
+    /**
+     * Get theme-aware secondary text color
+     * @returns {string}
+     */
+    getSecondaryColor() {
+        return this.isDarkTheme() ? '#9ca3af' : '#606266';
+    }
+
+    /**
+     * Get theme-aware border color
+     * @returns {string}
+     */
+    getBorderColor() {
+        return this.isDarkTheme() ? '#374151' : '#dcdfe6';
+    }
+
+    /**
+     * Get theme-aware light border color
+     * @returns {string}
+     */
+    getBorderColorLight() {
+        return this.isDarkTheme() ? '#4b5563' : '#e4e7ed';
+    }
+
+    /**
+     * Get theme-aware background color
+     * @returns {string}
+     */
+    getBgColor() {
+        return this.isDarkTheme() ? '#1a1a2e' : '#ffffff';
+    }
+
+    /**
      * Get title configuration
      * @param {Object} config
      * @returns {Object}
@@ -127,16 +171,40 @@ class BaseChart {
                 subtext: config.subtitle || '',
                 left: 'center',
                 textStyle: {
-                    color: 'var(--gb-text-primary)',
+                    color: this.getTextColor(),
                     fontSize: 18,
                     fontWeight: 'bold'
                 },
                 subtextStyle: {
-                    color: 'var(--gb-text-secondary)',
+                    color: this.getSecondaryColor(),
                     fontSize: 14
                 }
             }
         };
+    }
+
+    /**
+     * Check if dark theme is active
+     * @returns {boolean}
+     */
+    isDarkTheme() {
+        return document.documentElement.getAttribute('data-theme') === 'dark';
+    }
+
+    /**
+     * Get theme-aware text color
+     * @returns {string}
+     */
+    getTextColor() {
+        return this.isDarkTheme() ? '#f3f4f6' : '#1a1a2e';
+    }
+
+    /**
+     * Get theme-aware muted text color
+     * @returns {string}
+     */
+    getMutedColor() {
+        return this.isDarkTheme() ? '#6b7280' : '#909399';
     }
 
     /**
@@ -157,6 +225,8 @@ class BaseChart {
         };
 
         const position = positionMap[config.legendPosition] || positionMap.top;
+        const textColor = this.getTextColor();
+        const mutedColor = this.getMutedColor();
 
         return {
             legend: {
@@ -164,8 +234,13 @@ class BaseChart {
                 type: 'scroll',
                 ...position,
                 textStyle: {
-                    color: 'var(--gb-text-primary)'
-                }
+                    color: textColor
+                },
+                pageTextStyle: {
+                    color: mutedColor
+                },
+                pageIconColor: textColor,
+                pageIconInactiveColor: mutedColor
             }
         };
     }
@@ -178,10 +253,10 @@ class BaseChart {
         return {
             tooltip: {
                 trigger: this.getSeriesType() === 'pie' ? 'item' : 'axis',
-                backgroundColor: 'var(--gb-bg-primary)',
-                borderColor: 'var(--gb-border-color)',
+                backgroundColor: this.getBgColor(),
+                borderColor: this.getBorderColor(),
                 textStyle: {
-                    color: 'var(--gb-text-primary)'
+                    color: this.getTextColor()
                 }
             }
         };

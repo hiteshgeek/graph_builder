@@ -9,6 +9,13 @@ import { PreviewPanel } from './PreviewPanel.js';
 import { ThemeSwitcher } from './ThemeSwitcher.js';
 import { debounce } from '../utils/helpers.js';
 
+// Sidebar tab definitions
+const SIDEBAR_TABS = [
+    { id: 'config', label: 'Config', icon: 'settings' },
+    { id: 'data', label: 'Data', icon: 'database' },
+    { id: 'mapping', label: 'Mapping', icon: 'link' }
+];
+
 /**
  * GraphBuilder - Main orchestrator component
  */
@@ -22,13 +29,14 @@ class GraphBuilder extends BaseComponent {
         this.queryEditor = null;
         this.previewPanel = null;
         this.themeSwitcher = null;
+        this.activeTab = 'config';
     }
 
     init() {
         this.render();
         this.initComponents();
         this.setupResizeHandler();
-        this.setupSectionResizers();
+        this.restoreActiveTab();
         this.initialized = true;
     }
 
@@ -55,31 +63,75 @@ class GraphBuilder extends BaseComponent {
         header.appendChild(titleSection);
         header.appendChild(actions);
 
-        // Main content - 3 column layout
+        // Main content - 2 column layout (tabbed sidebar + preview)
         const main = this.createElement('div', { className: 'gb-main' });
 
-        // Left sidebar (config)
+        // Left sidebar with tabs
         const sidebar = this.createElement('aside', { className: 'gb-sidebar' });
+
+        // Tab navigation
+        this.tabNav = this.createElement('div', { className: 'gb-sidebar-tabs' });
+        this.tabButtons = {};
+
+        SIDEBAR_TABS.forEach(tab => {
+            const btn = this.createElement('button', {
+                className: `gb-sidebar-tab${tab.id === this.activeTab ? ' gb-sidebar-tab--active' : ''}`,
+                type: 'button',
+                'data-tab': tab.id
+            });
+
+            const icon = this.createElement('span', { className: 'gb-sidebar-tab-icon' });
+            icon.innerHTML = this.getTabIcon(tab.icon);
+
+            const label = this.createElement('span', { className: 'gb-sidebar-tab-label' }, tab.label);
+
+            btn.appendChild(icon);
+            btn.appendChild(label);
+
+            this.bindEvent(btn, 'click', () => this.switchTab(tab.id));
+
+            this.tabButtons[tab.id] = btn;
+            this.tabNav.appendChild(btn);
+        });
+
+        sidebar.appendChild(this.tabNav);
+
+        // Tab content panels
+        this.tabPanels = {};
+
+        // Config tab panel
+        this.tabPanels.config = this.createElement('div', {
+            className: 'gb-sidebar-panel gb-sidebar-panel--config',
+            'data-panel': 'config'
+        });
         this.configContainer = this.createElement('div', { className: 'gb-config-wrapper' });
-        sidebar.appendChild(this.configContainer);
+        this.tabPanels.config.appendChild(this.configContainer);
 
-        // Middle column (data explorer + data mapping + query) with resize handles
-        const middle = this.createElement('div', { className: 'gb-middle' });
-        this.dataExplorerContainer = this.createElement('div', { className: 'gb-data-explorer-wrapper gb-resizable-section' });
-        const resizeHandle1 = this.createElement('div', { className: 'gb-resize-handle', 'data-resize': 'data-explorer' });
-        this.dataMappingContainer = this.createElement('div', { className: 'gb-data-mapping-wrapper gb-resizable-section' });
-        const resizeHandle2 = this.createElement('div', { className: 'gb-resize-handle', 'data-resize': 'data-mapping' });
-        this.queryContainer = this.createElement('div', { className: 'gb-query-wrapper gb-resizable-section' });
+        // Data tab panel (table selection + query)
+        this.tabPanels.data = this.createElement('div', {
+            className: 'gb-sidebar-panel gb-sidebar-panel--data',
+            'data-panel': 'data'
+        });
+        this.dataExplorerContainer = this.createElement('div', { className: 'gb-data-explorer-wrapper' });
+        this.queryContainer = this.createElement('div', { className: 'gb-query-wrapper' });
+        this.tabPanels.data.appendChild(this.dataExplorerContainer);
+        this.tabPanels.data.appendChild(this.queryContainer);
 
-        middle.appendChild(this.dataExplorerContainer);
-        middle.appendChild(resizeHandle1);
-        middle.appendChild(this.dataMappingContainer);
-        middle.appendChild(resizeHandle2);
-        middle.appendChild(this.queryContainer);
+        // Mapping tab panel
+        this.tabPanels.mapping = this.createElement('div', {
+            className: 'gb-sidebar-panel gb-sidebar-panel--mapping',
+            'data-panel': 'mapping'
+        });
+        this.dataMappingContainer = this.createElement('div', { className: 'gb-data-mapping-wrapper' });
+        this.tabPanels.mapping.appendChild(this.dataMappingContainer);
 
-        // Store references for resize handling
-        this.middleColumn = middle;
-        this.resizeHandles = [resizeHandle1, resizeHandle2];
+        // Add panels to sidebar
+        Object.values(this.tabPanels).forEach(panel => {
+            sidebar.appendChild(panel);
+        });
+
+        // Show active tab
+        this.updateTabVisibility();
 
         // Right column (preview)
         const content = this.createElement('div', { className: 'gb-content' });
@@ -87,13 +139,71 @@ class GraphBuilder extends BaseComponent {
         content.appendChild(this.previewContainer);
 
         main.appendChild(sidebar);
-        main.appendChild(middle);
         main.appendChild(content);
 
         this.element.appendChild(header);
         this.element.appendChild(main);
 
         this.container.appendChild(this.element);
+    }
+
+    getTabIcon(iconName) {
+        const icons = {
+            settings: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>`,
+            database: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+            </svg>`,
+            link: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>`
+        };
+        return icons[iconName] || '';
+    }
+
+    switchTab(tabId) {
+        if (this.activeTab === tabId) return;
+
+        this.activeTab = tabId;
+        this.updateTabVisibility();
+        this.saveActiveTab();
+    }
+
+    updateTabVisibility() {
+        // Update tab buttons
+        Object.entries(this.tabButtons).forEach(([id, btn]) => {
+            btn.classList.toggle('gb-sidebar-tab--active', id === this.activeTab);
+        });
+
+        // Update panels
+        Object.entries(this.tabPanels).forEach(([id, panel]) => {
+            panel.classList.toggle('gb-sidebar-panel--active', id === this.activeTab);
+        });
+    }
+
+    saveActiveTab() {
+        try {
+            localStorage.setItem('graphBuilder_activeTab', this.activeTab);
+        } catch (e) {
+            // Ignore storage errors
+        }
+    }
+
+    restoreActiveTab() {
+        try {
+            const saved = localStorage.getItem('graphBuilder_activeTab');
+            if (saved && SIDEBAR_TABS.some(t => t.id === saved)) {
+                this.activeTab = saved;
+                this.updateTabVisibility();
+            }
+        } catch (e) {
+            // Ignore storage errors
+        }
     }
 
     initComponents() {
@@ -119,9 +229,10 @@ class GraphBuilder extends BaseComponent {
                 this.queryEditor.insertText(fieldName);
             },
             onTableSelect: (tableName, fields) => {
-                // Could auto-generate a basic SELECT query
+                // Query is auto-generated by DataExplorer
             }
         });
+        this.dataExplorer.setQueryEditor(this.queryEditor);
         this.dataExplorer.init();
 
         // Data mapping (column selection for chart axes)
@@ -150,112 +261,6 @@ class GraphBuilder extends BaseComponent {
             event: 'resize',
             handler: handleResize
         });
-    }
-
-    setupSectionResizers() {
-        const sections = [
-            this.dataExplorerContainer,
-            this.dataMappingContainer,
-            this.queryContainer
-        ];
-
-        this.resizeHandles.forEach((handle, index) => {
-            let isResizing = false;
-            let startY = 0;
-            let startHeightAbove = 0;
-            let startHeightBelow = 0;
-            const sectionAbove = sections[index];
-            const sectionBelow = sections[index + 1];
-
-            const onMouseDown = (e) => {
-                isResizing = true;
-                startY = e.clientY;
-                startHeightAbove = sectionAbove.offsetHeight;
-                startHeightBelow = sectionBelow.offsetHeight;
-
-                handle.classList.add('gb-resize-handle--active');
-                document.body.style.cursor = 'row-resize';
-                document.body.style.userSelect = 'none';
-
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
-            };
-
-            const onMouseMove = (e) => {
-                if (!isResizing) return;
-
-                const deltaY = e.clientY - startY;
-                const newHeightAbove = Math.max(50, startHeightAbove + deltaY);
-                const newHeightBelow = Math.max(50, startHeightBelow - deltaY);
-
-                // Only apply if both sections have valid heights
-                if (newHeightAbove >= 50 && newHeightBelow >= 50) {
-                    sectionAbove.style.height = `${newHeightAbove}px`;
-                    sectionAbove.style.flex = 'none';
-                    sectionBelow.style.height = `${newHeightBelow}px`;
-                    sectionBelow.style.flex = 'none';
-                }
-            };
-
-            const onMouseUp = () => {
-                isResizing = false;
-                handle.classList.remove('gb-resize-handle--active');
-                document.body.style.cursor = '';
-                document.body.style.userSelect = '';
-
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-
-                // Save sizes to localStorage
-                this.saveSectionSizes();
-            };
-
-            handle.addEventListener('mousedown', onMouseDown);
-            this.eventBindings.push({
-                element: handle,
-                event: 'mousedown',
-                handler: onMouseDown
-            });
-        });
-
-        // Restore saved sizes
-        this.restoreSectionSizes();
-    }
-
-    saveSectionSizes() {
-        try {
-            const sizes = {
-                dataExplorer: this.dataExplorerContainer.offsetHeight,
-                dataMapping: this.dataMappingContainer.offsetHeight,
-                query: this.queryContainer.offsetHeight
-            };
-            localStorage.setItem('graphBuilder_sectionSizes', JSON.stringify(sizes));
-        } catch (e) {
-            // Ignore storage errors
-        }
-    }
-
-    restoreSectionSizes() {
-        try {
-            const saved = localStorage.getItem('graphBuilder_sectionSizes');
-            if (saved) {
-                const sizes = JSON.parse(saved);
-                if (sizes.dataExplorer) {
-                    this.dataExplorerContainer.style.height = `${sizes.dataExplorer}px`;
-                    this.dataExplorerContainer.style.flex = 'none';
-                }
-                if (sizes.dataMapping) {
-                    this.dataMappingContainer.style.height = `${sizes.dataMapping}px`;
-                    this.dataMappingContainer.style.flex = 'none';
-                }
-                if (sizes.query) {
-                    this.queryContainer.style.height = `${sizes.query}px`;
-                    this.queryContainer.style.flex = 'none';
-                }
-            }
-        } catch (e) {
-            // Ignore storage errors
-        }
     }
 
     // Public API

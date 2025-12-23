@@ -42,14 +42,14 @@
     @include flex-center;
 }
 
-// Main layout
+// Main layout - 2 column (tabbed sidebar + preview)
 .gb-main {
     display: flex;
     flex: 1;
     overflow: hidden;
 }
 
-// Left sidebar (config panel)
+// Left sidebar with tabs
 .gb-sidebar {
     width: var(--gb-sidebar-width);
     flex-shrink: 0;
@@ -60,6 +60,70 @@
     flex-direction: column;
 }
 
+// Sidebar tabs navigation
+.gb-sidebar-tabs {
+    display: flex;
+    padding: var(--gb-spacing-sm);
+    gap: 2px;
+    background: var(--gb-bg-tertiary);
+    border-bottom: 1px solid var(--gb-border-color);
+    flex-shrink: 0;
+}
+
+.gb-sidebar-tab {
+    @include button-reset;
+    @include flex-center;
+    flex: 1;
+    gap: var(--gb-spacing-xs);
+    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+    font-size: var(--gb-font-size-sm);
+    font-weight: 500;
+    color: var(--gb-text-muted);
+    border-radius: var(--gb-radius-sm);
+    @include transition-fast;
+
+    &:hover {
+        color: var(--gb-text-primary);
+        background: var(--gb-bg-hover);
+    }
+
+    &--active {
+        color: var(--gb-text-primary);
+        background: var(--gb-bg-primary);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.gb-sidebar-tab-icon {
+    @include flex-center;
+    width: 16px;
+    height: 16px;
+
+    svg {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+.gb-sidebar-tab-label {
+    // Hide on smaller screens
+    @media (max-width: 1400px) {
+        display: none;
+    }
+}
+
+// Sidebar panels
+.gb-sidebar-panel {
+    flex: 1;
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+
+    &--active {
+        display: flex;
+    }
+}
+
 // Config wrapper in sidebar
 .gb-config-wrapper {
     flex: 1;
@@ -68,86 +132,31 @@
     flex-direction: column;
 }
 
-// Middle column (query/data section)
-.gb-middle {
-    width: var(--gb-middle-width, 320px);
-    flex-shrink: 0;
-    background: var(--gb-bg-primary);
-    border-right: 1px solid var(--gb-border-color);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-// Resizable sections in middle column
-.gb-resizable-section {
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    min-height: 50px;
-}
-
-.gb-data-explorer-wrapper {
-    flex: 1;
-    padding: var(--gb-spacing-md);
-    padding-bottom: 0;
-}
-
-.gb-data-mapping-wrapper {
-    flex: 0 0 auto;
-    padding: var(--gb-spacing-md);
-    padding-top: 0;
-    padding-bottom: 0;
-}
-
-// Query wrapper in middle column
-.gb-query-wrapper {
-    flex: 1;
-    padding: var(--gb-spacing-md);
-    padding-top: 0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    min-height: 120px;
-}
-
-// Resize handle between sections
-.gb-resize-handle {
-    flex-shrink: 0;
-    height: 8px;
-    margin: 4px var(--gb-spacing-md);
-    cursor: row-resize;
-    position: relative;
-    border-radius: var(--gb-radius-sm);
-    @include transition-fast;
-
-    &::before {
-        content: '';
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        width: 40px;
-        height: 4px;
-        background: var(--gb-border-color);
-        border-radius: 2px;
-        @include transition-fast;
+// Data panel - stacked layout for table selector and query
+.gb-sidebar-panel--data {
+    .gb-data-explorer-wrapper {
+        flex: 0 0 auto;
+        max-height: 45%;
+        overflow: hidden;
+        border-bottom: 1px solid var(--gb-border-color);
     }
 
-    &:hover {
-        background: var(--gb-bg-tertiary);
-
-        &::before {
-            background: var(--gb-text-muted);
-        }
+    .gb-query-wrapper {
+        flex: 1;
+        min-height: 200px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
+}
 
-    &--active {
-        background: var(--gb-primary-light);
-
-        &::before {
-            background: var(--gb-primary);
-        }
+// Mapping panel
+.gb-sidebar-panel--mapping {
+    .gb-data-mapping-wrapper {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
 }
 
@@ -167,8 +176,8 @@
 
 // Responsive
 @media (max-width: 1200px) {
-    .gb-middle {
-        width: 280px;
+    .gb-sidebar {
+        width: 320px;
     }
 }
 
@@ -180,17 +189,13 @@
     .gb-sidebar {
         width: 100%;
         height: auto;
-        max-height: 35vh;
+        max-height: 50vh;
         border-right: none;
         border-bottom: 1px solid var(--gb-border-color);
     }
 
-    .gb-middle {
-        width: 100%;
-        height: auto;
-        max-height: 30vh;
-        border-right: none;
-        border-bottom: 1px solid var(--gb-border-color);
+    .gb-sidebar-tab-label {
+        display: inline;
     }
 
     .gb-preview-wrapper {

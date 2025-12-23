@@ -83,7 +83,7 @@ class PieChart extends BaseChart {
             show: true,
             position: position,
             formatter: formatParts.join(' '),
-            color: 'var(--gb-text-primary)'
+            color: this.getTextColor()
         };
     }
 

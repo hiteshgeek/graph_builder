@@ -5,15 +5,7 @@
     @include flex-column;
     height: 100%;
     overflow: hidden;
-}
-
-// Data explorer wrapper in middle column
-.gb-data-explorer-wrapper {
-    flex: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    border-bottom: 1px solid var(--gb-border-color);
+    padding: var(--gb-spacing-md);
 }
 
 // Database info section
@@ -51,7 +43,6 @@
 // Table search section
 .gb-table-search {
     padding: var(--gb-spacing-sm) var(--gb-spacing-md);
-    border-bottom: 1px solid var(--gb-border-color);
 }
 
 .gb-search-label {
@@ -64,6 +55,10 @@
     letter-spacing: 0.5px;
 }
 
+.gb-search-container {
+    position: relative;
+}
+
 .gb-search-input {
     width: 100%;
     padding: var(--gb-spacing-xs) var(--gb-spacing-sm);
@@ -72,9 +67,11 @@
     border-radius: var(--gb-radius-sm);
     font-size: var(--gb-font-size-sm);
     color: var(--gb-text-primary);
+    font-family: var(--gb-font-mono);
 
     &::placeholder {
         color: var(--gb-text-placeholder);
+        font-family: var(--gb-font-family);
     }
 
     &:focus {
@@ -84,22 +81,28 @@
     }
 }
 
-// Tables section
-.gb-tables-section {
-    flex: 1;
+// Table dropdown
+.gb-table-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 200px;
     overflow-y: auto;
-    min-height: 0;
+    background: var(--gb-bg-primary);
+    border: 1px solid var(--gb-border-color);
+    border-top: none;
+    border-radius: 0 0 var(--gb-radius-sm) var(--gb-radius-sm);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    @include custom-scrollbar;
 }
 
-.gb-tables-list {
-    padding: var(--gb-spacing-xs) 0;
-}
-
-.gb-table-item {
+.gb-dropdown-item {
     @include flex-center;
     justify-content: flex-start;
     gap: var(--gb-spacing-sm);
-    padding: var(--gb-spacing-xs) var(--gb-spacing-md);
+    padding: var(--gb-spacing-xs) var(--gb-spacing-sm);
     cursor: pointer;
     @include transition-fast;
 
@@ -107,19 +110,8 @@
         background: var(--gb-bg-hover);
     }
 
-    &--selected {
-        background: var(--gb-primary);
-        color: #fff;
-
-        .gb-table-icon,
-        .gb-table-name,
-        .gb-table-rows {
-            color: #fff;
-        }
-
-        &:hover {
-            background: var(--gb-primary-dark);
-        }
+    &:last-child {
+        border-radius: 0 0 var(--gb-radius-sm) var(--gb-radius-sm);
     }
 }
 
@@ -154,8 +146,7 @@
 
 // Fields section
 .gb-fields-section {
-    flex-shrink: 0;
-    max-height: 40%;
+    flex: 1;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -180,6 +171,7 @@
     flex: 1;
     overflow-y: auto;
     padding: var(--gb-spacing-xs) 0;
+    @include custom-scrollbar;
 }
 
 .gb-field-item {

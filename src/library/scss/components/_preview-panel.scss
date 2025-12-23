@@ -9,17 +9,55 @@
 }
 
 .gb-preview-header {
-    @include flex-between;
-    gap: var(--gb-spacing-sm);
+    @include flex-center;
+    justify-content: flex-start;
+    gap: var(--gb-spacing-md);
     padding: var(--gb-spacing-sm) var(--gb-spacing-md);
     border-bottom: 1px solid var(--gb-border-color);
     flex-shrink: 0;
 }
 
-.gb-preview-title {
+// Tabs
+.gb-preview-tabs {
+    @include flex-center;
+    gap: 2px;
+    background: var(--gb-bg-secondary);
+    padding: 3px;
+    border-radius: var(--gb-radius-md);
+}
+
+.gb-preview-tab {
+    @include button-reset;
+    @include flex-center;
+    gap: var(--gb-spacing-xs);
+    padding: var(--gb-spacing-xs) var(--gb-spacing-sm);
     font-size: var(--gb-font-size-sm);
-    font-weight: 600;
-    color: var(--gb-text-secondary);
+    font-weight: 500;
+    color: var(--gb-text-muted);
+    border-radius: var(--gb-radius-sm);
+    @include transition-fast;
+
+    &:hover {
+        color: var(--gb-text-primary);
+        background: var(--gb-bg-hover);
+    }
+
+    &--active {
+        color: var(--gb-text-primary);
+        background: var(--gb-bg-primary);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.gb-tab-icon {
+    @include flex-center;
+    width: 16px;
+    height: 16px;
+
+    svg {
+        width: 100%;
+        height: 100%;
+    }
 }
 
 .gb-preview-demo-badge {
@@ -29,13 +67,18 @@
     background: var(--gb-warning);
     color: #000;
     border-radius: var(--gb-radius-sm);
-    margin-left: var(--gb-spacing-sm);
 }
 
-.gb-preview-export-btn {
+// Actions
+.gb-preview-actions {
+    @include flex-center;
+    gap: var(--gb-spacing-sm);
+    margin-left: auto;
+}
+
+.gb-preview-btn {
     @include button-reset;
     @include transition-fast;
-    margin-left: auto;
     padding: var(--gb-spacing-xs) var(--gb-spacing-md);
     background: var(--gb-bg-secondary);
     color: var(--gb-text-secondary);
@@ -52,10 +95,119 @@
     &:focus-visible {
         @include focus-ring;
     }
+
+    &--primary {
+        background: var(--gb-primary);
+        color: #fff;
+        border-color: var(--gb-primary);
+
+        &:hover:not(:disabled) {
+            background: var(--gb-primary-dark);
+            color: #fff;
+        }
+    }
+}
+
+// Content area
+.gb-preview-content {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
 }
 
 .gb-preview-chart {
-    flex: 1;
-    min-height: 0;
+    width: 100%;
+    height: 100%;
     padding: var(--gb-spacing-md);
+}
+
+// Code view
+.gb-preview-code {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.gb-code-wrapper {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.gb-code-copy-btn {
+    @include button-reset;
+    position: absolute;
+    top: var(--gb-spacing-sm);
+    right: var(--gb-spacing-md);
+    padding: var(--gb-spacing-xs) var(--gb-spacing-sm);
+    background: var(--gb-bg-tertiary);
+    color: var(--gb-text-secondary);
+    font-size: var(--gb-font-size-xs);
+    font-weight: 500;
+    border: 1px solid var(--gb-border-color);
+    border-radius: var(--gb-radius-sm);
+    z-index: 10;
+    @include transition-fast;
+
+    &:hover {
+        background: var(--gb-bg-hover);
+        color: var(--gb-text-primary);
+    }
+
+    &--success {
+        background: var(--gb-success);
+        color: #fff;
+        border-color: var(--gb-success);
+    }
+}
+
+.gb-code-pre {
+    flex: 1;
+    margin: 0;
+    padding: var(--gb-spacing-md);
+    padding-top: calc(var(--gb-spacing-md) + 30px); // Space for copy button
+    background: var(--gb-bg-secondary);
+    overflow: auto;
+    @include custom-scrollbar;
+
+    code {
+        font-family: var(--gb-font-mono);
+        font-size: var(--gb-font-size-sm);
+        line-height: 1.6;
+        color: var(--gb-text-primary);
+        white-space: pre;
+        display: block;
+    }
+}
+
+// Syntax highlighting colors (when hljs is not available)
+.gb-code-pre code {
+    .hljs-keyword,
+    .hljs-selector-tag {
+        color: var(--gb-primary);
+    }
+
+    .hljs-string,
+    .hljs-attr {
+        color: var(--gb-success);
+    }
+
+    .hljs-number {
+        color: var(--gb-warning);
+    }
+
+    .hljs-comment {
+        color: var(--gb-text-muted);
+        font-style: italic;
+    }
+
+    .hljs-tag {
+        color: var(--gb-danger);
+    }
+
+    .hljs-name {
+        color: var(--gb-primary);
+    }
 }
