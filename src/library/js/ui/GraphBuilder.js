@@ -139,12 +139,18 @@ class GraphBuilder extends BaseComponent {
         // Show active tab
         this.updateTabVisibility();
 
+        // Resizer between sidebar and content
+        const sidebarResizer = this.createElement('div', { className: 'gb-sidebar-resizer' });
+        this.sidebar = sidebar;
+        this.initSidebarResizer(sidebarResizer);
+
         // Right column (preview)
         const content = this.createElement('div', { className: 'gb-content' });
         this.previewContainer = this.createElement('div', { className: 'gb-preview-wrapper' });
         content.appendChild(this.previewContainer);
 
         main.appendChild(sidebar);
+        main.appendChild(sidebarResizer);
         main.appendChild(content);
 
         this.element.appendChild(header);
@@ -267,6 +273,78 @@ class GraphBuilder extends BaseComponent {
             event: 'resize',
             handler: handleResize
         });
+    }
+
+    /**
+     * Initialize the resizer between sidebar and content
+     */
+    initSidebarResizer(resizer) {
+        let isResizing = false;
+        let startX = 0;
+        let startWidth = 0;
+
+        const onMouseDown = (e) => {
+            isResizing = true;
+            startX = e.clientX;
+            startWidth = this.sidebar.offsetWidth;
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+            resizer.classList.add('gb-sidebar-resizer--active');
+        };
+
+        const onMouseMove = (e) => {
+            if (!isResizing) return;
+
+            const deltaX = e.clientX - startX;
+            const minWidth = 280;
+            const maxWidth = 600;
+
+            let newWidth = startWidth + deltaX;
+            newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+
+            this.sidebar.style.width = `${newWidth}px`;
+
+            // Trigger resize on preview panel
+            if (this.previewPanel) {
+                this.previewPanel.resize();
+            }
+        };
+
+        const onMouseUp = () => {
+            if (!isResizing) return;
+            isResizing = false;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            resizer.classList.remove('gb-sidebar-resizer--active');
+
+            // Save width to localStorage
+            try {
+                localStorage.setItem('graphBuilder_sidebarWidth', this.sidebar.style.width);
+            } catch (e) {
+                // Ignore
+            }
+        };
+
+        resizer.addEventListener('mousedown', onMouseDown);
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+
+        // Store for cleanup
+        this.eventBindings.push(
+            { element: resizer, event: 'mousedown', handler: onMouseDown },
+            { element: document, event: 'mousemove', handler: onMouseMove },
+            { element: document, event: 'mouseup', handler: onMouseUp }
+        );
+
+        // Restore saved width
+        try {
+            const savedWidth = localStorage.getItem('graphBuilder_sidebarWidth');
+            if (savedWidth) {
+                this.sidebar.style.width = savedWidth;
+            }
+        } catch (e) {
+            // Ignore
+        }
     }
 
     /**

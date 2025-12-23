@@ -195,6 +195,40 @@
     }
 }
 
+// Resizer between sidebar and content
+.gb-sidebar-resizer {
+    flex-shrink: 0;
+    width: 6px;
+    background: var(--gb-border-color);
+    cursor: col-resize;
+    position: relative;
+    @include transition-fast;
+
+    &::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 4px;
+        height: 32px;
+        background: var(--gb-text-muted);
+        border-radius: 2px;
+        opacity: 0.5;
+        @include transition-fast;
+    }
+
+    &:hover,
+    &--active {
+        background: var(--gb-primary-light, rgba(79, 70, 229, 0.2));
+
+        &::before {
+            background: var(--gb-primary);
+            opacity: 1;
+        }
+    }
+}
+
 // Right column (preview)
 .gb-content {
     @include flex-column;
@@ -222,11 +256,15 @@
     }
 
     .gb-sidebar {
-        width: 100%;
+        width: 100% !important; // Override inline style
         height: auto;
         max-height: 50vh;
         border-right: none;
         border-bottom: 1px solid var(--gb-border-color);
+    }
+
+    .gb-sidebar-resizer {
+        display: none;
     }
 
     .gb-sidebar-tab-label {

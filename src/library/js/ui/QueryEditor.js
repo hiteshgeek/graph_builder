@@ -180,44 +180,95 @@ class QueryEditor extends BaseComponent {
     }
 
     /**
-     * Simple SQL formatter
+     * PhpMyAdmin-style SQL formatter
+     * Major clause keywords on their own line, content indented below
      */
     formatSQL(sql) {
-        const newlineKeywords = [
-            'SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'ORDER BY', 'GROUP BY',
-            'HAVING', 'LIMIT', 'OFFSET', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN',
-            'INNER JOIN', 'OUTER JOIN', 'CROSS JOIN', 'ON', 'SET', 'VALUES',
-            'INSERT INTO', 'UPDATE', 'DELETE FROM', 'UNION', 'UNION ALL'
-        ];
-
-        // Normalize whitespace
+        // Normalize whitespace to single spaces
         let formatted = sql.replace(/\s+/g, ' ').trim();
 
-        // Add newlines before keywords
-        newlineKeywords.forEach(keyword => {
-            const regex = new RegExp(`\\s+(${keyword})\\s+`, 'gi');
-            formatted = formatted.replace(regex, `\n${keyword.toUpperCase()} `);
+        // Multi-word keywords need protection
+        const multiWordMap = {
+            'LEFT OUTER JOIN': '___LOJ___',
+            'RIGHT OUTER JOIN': '___ROJ___',
+            'FULL OUTER JOIN': '___FOJ___',
+            'LEFT JOIN': '___LJ___',
+            'RIGHT JOIN': '___RJ___',
+            'INNER JOIN': '___IJ___',
+            'OUTER JOIN': '___OJ___',
+            'CROSS JOIN': '___CJ___',
+            'ORDER BY': '___OB___',
+            'GROUP BY': '___GB___',
+            'UNION ALL': '___UA___',
+            'INSERT INTO': '___II___',
+            'DELETE FROM': '___DF___'
+        };
+
+        // Replace multi-word keywords with placeholders (case-insensitive)
+        for (const [kw, ph] of Object.entries(multiWordMap)) {
+            const regex = new RegExp(kw.replace(/\s+/g, '\\s+'), 'gi');
+            formatted = formatted.replace(regex, ph);
+        }
+
+        // Block keywords - these get their own line, content on next line indented
+        const blockKeywords = ['SELECT', 'FROM', 'WHERE', '___OB___', '___GB___', 'HAVING', 'LIMIT', 'SET', 'VALUES'];
+
+        // Process block keywords
+        blockKeywords.forEach(kw => {
+            const regex = new RegExp(`\\b${kw}\\b\\s*`, 'gi');
+            formatted = formatted.replace(regex, `\n${kw}\n    `);
         });
 
-        // Ensure SELECT is at the start
-        formatted = formatted.replace(/^SELECT\s+/i, 'SELECT ');
+        // JOIN keywords - new line for JOIN, then table alias, then ON with content indented
+        const joinKeywords = ['___LOJ___', '___ROJ___', '___FOJ___', '___LJ___', '___RJ___', '___IJ___', '___OJ___', '___CJ___', 'JOIN'];
 
-        // Indent AND/OR
+        joinKeywords.forEach(kw => {
+            const regex = new RegExp(`\\b${kw}\\b`, 'gi');
+            formatted = formatted.replace(regex, `\n${kw}`);
+        });
+
+        // Format: JOIN table alias ON\n    (condition)
+        formatted = formatted.replace(/\n(___[A-Z]+___|JOIN)\s+(\S+(?:\s+\S+)?)\s+ON\s*/gi, '\n$1 $2 ON\n    ');
+
+        // Restore multi-word keywords
+        for (const [kw, ph] of Object.entries(multiWordMap)) {
+            formatted = formatted.split(ph).join(kw.toUpperCase());
+        }
+
+        // Clean up multiple newlines and leading newline
+        formatted = formatted.replace(/^\n+/, '');
+        formatted = formatted.replace(/\n{2,}/g, '\n');
+
+        // Process lines - trim and uppercase keywords
         const lines = formatted.split('\n');
-        const indentedLines = lines.map((line, index) => {
-            const trimmed = line.trim();
-            const upper = trimmed.toUpperCase();
+        const result = lines.map(line => {
+            let trimmed = line.trimEnd();
+            if (!trimmed.trim()) return null;
 
-            if (index > 0) {
-                if (upper.startsWith('AND ') || upper.startsWith('OR ')) {
-                    return '  ' + trimmed;
-                }
+            // Preserve indentation (4 spaces) but trim otherwise
+            if (trimmed.startsWith('    ')) {
+                trimmed = '    ' + trimmed.substring(4).trim();
+            } else {
+                trimmed = trimmed.trim();
             }
 
-            return trimmed;
-        });
+            // Uppercase SQL keywords
+            const keywords = ['SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'ORDER BY', 'GROUP BY', 'HAVING',
+                'LIMIT', 'OFFSET', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 'OUTER JOIN',
+                'CROSS JOIN', 'LEFT OUTER JOIN', 'RIGHT OUTER JOIN', 'FULL OUTER JOIN', 'ON',
+                'SET', 'VALUES', 'INSERT INTO', 'UPDATE', 'DELETE FROM', 'UNION ALL', 'UNION',
+                'AS', 'IN', 'BETWEEN', 'LIKE', 'IS', 'NULL', 'NOT', 'ASC', 'DESC', 'COUNT', 'SUM',
+                'AVG', 'MIN', 'MAX', 'DATE', 'DISTINCT'];
 
-        return indentedLines.join('\n');
+            keywords.forEach(kw => {
+                const regex = new RegExp(`\\b${kw}\\b`, 'gi');
+                trimmed = trimmed.replace(regex, kw.toUpperCase());
+            });
+
+            return trimmed;
+        }).filter(line => line !== null);
+
+        return result.join('\n');
     }
 
     /**
