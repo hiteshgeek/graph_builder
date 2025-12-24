@@ -34,30 +34,37 @@ require_once __DIR__ . '/../includes/functions.php';
             </div>
         </header>
 
-        <!-- Table of Contents -->
-        <nav class="docs-toc">
-            <ul>
-                <li><a href="#overview">Overview</a></li>
-                <li><a href="#installation">Installation</a></li>
-                <li><a href="#database">Database Schema</a></li>
-                <li><a href="#data-sources">Data Sources</a>
-                    <ul>
-                        <li><a href="#sql-source">SQL Data Source</a></li>
-                        <li><a href="#api-source">API Data Source</a></li>
-                        <li><a href="#callback-source">Callback Data Source</a></li>
-                        <li><a href="#static-source">Static Data Source</a></li>
-                    </ul>
-                </li>
-                <li><a href="#filters">Runtime Filters</a></li>
-                <li><a href="#php-integration">PHP Integration</a></li>
-                <li><a href="#js-integration">JavaScript Integration</a></li>
-                <li><a href="#api-reference">API Reference</a></li>
-                <li><a href="#configuration">Configuration</a></li>
-                <li><a href="#security">Security</a></li>
-            </ul>
-        </nav>
+        <!-- Layout Container -->
+        <div class="docs-layout">
+            <!-- Table of Contents Sidebar -->
+            <nav class="docs-toc">
+                <h3>Contents</h3>
+                <ul>
+                    <li><a href="#overview">Overview</a></li>
+                    <li><a href="#installation">Installation</a></li>
+                    <li><a href="#database">Database Schema</a></li>
+                    <li>
+                        <a href="#data-sources">Data Sources</a>
+                        <ul>
+                            <li><a href="#sql-source">SQL Source</a></li>
+                            <li><a href="#api-source">API Source</a></li>
+                            <li><a href="#callback-source">Callback Source</a></li>
+                            <li><a href="#static-source">Static Source</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#transformers">Transformers</a></li>
+                    <li><a href="#filters">Runtime Filters</a></li>
+                    <li><a href="#php-integration">PHP Integration</a></li>
+                    <li><a href="#js-integration">JS Integration</a></li>
+                    <li><a href="#api-reference">API Reference</a></li>
+                    <li><a href="#configuration">Configuration</a></li>
+                    <li><a href="#security">Security</a></li>
+                </ul>
+            </nav>
 
-        <!-- Overview -->
+            <!-- Main Content -->
+            <main class="docs-content">
+                <!-- Overview -->
         <section class="docs-section" id="overview">
             <h2 class="docs-section-title">Overview</h2>
             <p>Graph Builder is a visual chart configuration tool that supports:</p>
@@ -435,6 +442,112 @@ class SalesReport
     {"category": "Food", "sales": 2800, "profit": 400},
     {"category": "Books", "sales": 1500, "profit": 350}
 ]</code></pre>
+        </section>
+
+        <!-- Transformers -->
+        <section class="docs-section" id="transformers">
+            <h2 class="docs-section-title">Data Transformers</h2>
+            <p>Transformers allow you to modify data after it's fetched from any data source (SQL, API, Callback, or Static) but before it's rendered as a chart. This is useful for data aggregation, calculations, formatting, or any custom processing.</p>
+
+            <h3>How Transformers Work</h3>
+            <p>The data flow is: <code>DataSource::fetch()</code> → <code>GraphRenderer::applyTransformer()</code> → <code>GraphRenderer::buildEChartsOption()</code></p>
+
+            <div class="docs-note">
+                <strong>Key Method:</strong> The <code>applyTransformer()</code> method in <code>GraphRenderer.php</code> is where all data passes through after being fetched from any source.
+            </div>
+
+            <h3>Configuring a Transformer</h3>
+            <p>In the data source configuration, specify a transformer class and method:</p>
+
+            <table class="docs-table">
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>transformer_class</strong></td>
+                        <td>Fully qualified class name (e.g., <code>App\Transformers\SalesTransformer</code>)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>transformer_method</strong></td>
+                        <td>Static method name to call (e.g., <code>aggregateByMonth</code>)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Example Transformer Class</h3>
+            <pre><code class="language-php">&lt;?php
+namespace App\Transformers;
+
+class SalesTransformer
+{
+    /**
+     * Aggregate daily data into monthly totals
+     *
+     * @param array $data Raw data from data source
+     * @param array $config Graph configuration (optional context)
+     * @return array Transformed data
+     */
+    public static function aggregateByMonth($data, $config = array())
+    {
+        $monthly = array();
+
+        foreach ($data as $row) {
+            $month = date('Y-m', strtotime($row['date']));
+            if (!isset($monthly[$month])) {
+                $monthly[$month] = array('month' => $month, 'sales' => 0, 'orders' => 0);
+            }
+            $monthly[$month]['sales'] += $row['amount'];
+            $monthly[$month]['orders'] += 1;
+        }
+
+        return array_values($monthly);
+    }
+
+    /**
+     * Add calculated fields
+     */
+    public static function addProfitMargin($data, $config = array())
+    {
+        foreach ($data as &$row) {
+            if (isset($row['revenue']) && isset($row['cost'])) {
+                $row['profit'] = $row['revenue'] - $row['cost'];
+                $row['margin'] = $row['revenue'] > 0
+                    ? round(($row['profit'] / $row['revenue']) * 100, 2)
+                    : 0;
+            }
+        }
+        return $data;
+    }
+
+    /**
+     * Filter and sort data
+     */
+    public static function topTenByRevenue($data, $config = array())
+    {
+        usort($data, function($a, $b) {
+            return $b['revenue'] - $a['revenue'];
+        });
+        return array_slice($data, 0, 10);
+    }
+}</code></pre>
+
+            <h3>Use Cases</h3>
+            <ul class="docs-list">
+                <li><strong>Aggregation:</strong> Sum daily records into weekly/monthly totals</li>
+                <li><strong>Calculations:</strong> Add computed fields (profit margins, percentages, averages)</li>
+                <li><strong>Filtering:</strong> Apply complex business logic filters</li>
+                <li><strong>Formatting:</strong> Format dates, numbers, or text for display</li>
+                <li><strong>Sorting:</strong> Custom sort orders not possible in SQL</li>
+                <li><strong>Joining:</strong> Combine data from the source with other lookups</li>
+            </ul>
+
+            <div class="docs-note docs-note--warning">
+                <strong>Security:</strong> Like callbacks, transformer classes must be in the <code>allowed_callback_namespaces</code> configured in <code>graph_builder.php</code>.
+            </div>
         </section>
 
         <!-- Runtime Filters -->
@@ -822,6 +935,8 @@ return [
                 </ul>
             </div>
         </section>
+            </main>
+        </div>
 
         <!-- Footer -->
         <footer class="usage-footer">
@@ -938,6 +1053,51 @@ return [
             });
         });
 
+        // Active section highlighting
+        function initScrollSpy() {
+            const sections = document.querySelectorAll('.docs-section[id]');
+            const tocLinks = document.querySelectorAll('.docs-toc a');
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '-80px 0px -70% 0px',
+                threshold: 0
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        setActiveLink(id);
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => observer.observe(section));
+
+            function setActiveLink(id) {
+                tocLinks.forEach(link => {
+                    link.classList.remove('docs-toc-active');
+                    if (link.getAttribute('href') === '#' + id) {
+                        link.classList.add('docs-toc-active');
+                        // Also highlight parent if this is a nested item
+                        const parentLi = link.closest('ul').closest('li');
+                        if (parentLi) {
+                            const parentLink = parentLi.querySelector(':scope > a');
+                            if (parentLink) parentLink.classList.add('docs-toc-active');
+                        }
+                    }
+                });
+            }
+
+            // Set initial active based on hash or first section
+            if (window.location.hash) {
+                setActiveLink(window.location.hash.slice(1));
+            } else if (sections.length > 0) {
+                setActiveLink(sections[0].getAttribute('id'));
+            }
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             createThemeSwitcher();
@@ -950,6 +1110,7 @@ return [
             });
 
             hljs.highlightAll();
+            initScrollSpy();
         });
     </script>
 </body>
