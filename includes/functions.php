@@ -11,7 +11,7 @@ function get_base_path()
     $parts = explode('/', trim($scriptDir, '/'));
 
     // Known subdirectory names that are NOT the project root
-    $subDirs = ['api', 'includes', 'usage', 'graphs'];
+    $subDirs = ['api', 'includes', 'usage', 'graphs', 'docs'];
 
     // Walk backwards removing subdirectories until we find the project root
     while (!empty($parts) && in_array(end($parts), $subDirs)) {

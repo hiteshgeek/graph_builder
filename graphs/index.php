@@ -86,6 +86,13 @@ function getSourceLabel($type) {
             </div>
             <div class="usage-header-actions">
                 <div id="theme-switcher"></div>
+                <a href="<?= get_base_path() ?>/docs/" class="usage-back-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                        <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+                    </svg>
+                    Docs
+                </a>
                 <a href="<?= get_base_path() ?>/" class="usage-back-link">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
