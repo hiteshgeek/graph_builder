@@ -52,13 +52,6 @@ class GraphBuilder extends BaseComponent {
         const logo = this.createElement('h1', { className: 'gb-logo' }, 'Graph Builder');
         titleSection.appendChild(logo);
 
-        // Usage link
-        const usageLink = this.createElement('a', {
-            className: 'gb-header-link',
-            href: 'usage/'
-        }, 'Usage Examples');
-        titleSection.appendChild(usageLink);
-
         const actions = this.createElement('div', { className: 'gb-header-actions' });
 
         // Type switcher container
@@ -68,6 +61,17 @@ class GraphBuilder extends BaseComponent {
         // Theme switcher container
         this.themeSwitcherContainer = this.createElement('div', { className: 'gb-header-theme' });
         actions.appendChild(this.themeSwitcherContainer);
+
+        // Usage link (after theme switcher, like in usage page)
+        const usageLink = this.createElement('a', {
+            className: 'gb-header-link',
+            href: 'usage/'
+        });
+        usageLink.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+        </svg>
+        Usage Examples`;
+        actions.appendChild(usageLink);
 
         header.appendChild(titleSection);
         header.appendChild(actions);
