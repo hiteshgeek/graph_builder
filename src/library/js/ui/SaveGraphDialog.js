@@ -188,9 +188,16 @@ class SaveGraphDialog extends BaseComponent {
 
         // Update source info
         const state = stateManager.getState();
+        const dsConfig = state.dataSourceConfig || { type: 'sql' };
         const sourceInfo = this.backdrop.querySelector('#save-source-info');
         if (sourceInfo) {
-            sourceInfo.textContent = 'SQL Query'; // For now, we only support SQL
+            const sourceLabels = {
+                sql: 'SQL Query',
+                api: 'API Endpoint',
+                callback: 'PHP Callback',
+                static: 'Static Data'
+            };
+            sourceInfo.textContent = sourceLabels[dsConfig.type] || 'SQL Query';
         }
 
         // Show dialog
@@ -252,18 +259,60 @@ class SaveGraphDialog extends BaseComponent {
         const data = state.data;
         const mapping = state.dataMapping;
         const config = stateManager.getConfig();
+        const dsConfig = state.dataSourceConfig || { type: 'sql' };
 
         // Check if we have data (data is an array directly, not {rows: [...]})
         if (!data || !Array.isArray(data) || data.length === 0) {
-            this.showMessage('No data available. Please execute a query first.', 'error');
+            this.showMessage('No data available. Please execute/fetch data first.', 'error');
             return;
         }
 
-        // Get query from state
-        const query = state.query || '';
-        if (!query) {
-            this.showMessage('No SQL query found. Please enter and execute a query.', 'error');
-            return;
+        // Validate data source based on type
+        const sourceType = dsConfig.type || 'sql';
+        if (sourceType === 'sql') {
+            const query = state.query || dsConfig.query || '';
+            if (!query) {
+                this.showMessage('No SQL query found. Please enter and execute a query.', 'error');
+                return;
+            }
+        } else if (sourceType === 'api') {
+            if (!dsConfig.apiUrl) {
+                this.showMessage('No API URL configured. Please configure the API source.', 'error');
+                return;
+            }
+        } else if (sourceType === 'callback') {
+            if (!dsConfig.callbackClass || !dsConfig.callbackMethod) {
+                this.showMessage('Callback class and method are required.', 'error');
+                return;
+            }
+        } else if (sourceType === 'static') {
+            if (!dsConfig.staticData) {
+                this.showMessage('No static data configured.', 'error');
+                return;
+            }
+        }
+
+        // Build the data source payload based on type
+        const dataSource = { type: sourceType };
+        switch (sourceType) {
+            case 'sql':
+                dataSource.query = state.query || dsConfig.query || '';
+                break;
+            case 'api':
+                dataSource.apiUrl = dsConfig.apiUrl || '';
+                dataSource.apiMethod = dsConfig.apiMethod || 'GET';
+                dataSource.apiHeaders = dsConfig.apiHeaders || '';
+                dataSource.apiBody = dsConfig.apiBody || '';
+                dataSource.apiDataPath = dsConfig.apiDataPath || '';
+                break;
+            case 'callback':
+                dataSource.callbackClass = dsConfig.callbackClass || '';
+                dataSource.callbackMethod = dsConfig.callbackMethod || '';
+                dataSource.callbackParams = dsConfig.callbackParams || '';
+                break;
+            case 'static':
+                dataSource.staticData = dsConfig.staticData || '';
+                break;
         }
 
         // Build the save payload
@@ -285,10 +334,7 @@ class SaveGraphDialog extends BaseComponent {
                 nameField: mapping?.nameField || '',
                 valueField: mapping?.valueField || ''
             },
-            dataSource: {
-                type: 'sql',
-                query: query
-            }
+            dataSource: dataSource
         };
 
         // Include ID if updating existing graph

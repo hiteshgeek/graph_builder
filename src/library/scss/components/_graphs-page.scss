@@ -273,13 +273,44 @@
 
 .graph-view-layout {
   display: grid;
-  grid-template-columns: 1fr 400px;
-  gap: var(--gb-spacing-xl);
+  grid-template-columns: 1fr 8px 400px;
+  gap: 0;
   min-height: 500px;
 
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
+
+    .graph-view-resizer {
+      display: none;
+    }
   }
+}
+
+// Horizontal Resizer
+.graph-view-resizer {
+  position: relative;
+  width: 8px;
+  background: transparent;
+  cursor: col-resize;
+  @include flex-center;
+  z-index: 10;
+
+  &:hover,
+  &:active {
+    .graph-view-resizer-handle {
+      background: var(--gb-primary);
+      opacity: 1;
+    }
+  }
+}
+
+.graph-view-resizer-handle {
+  width: 4px;
+  height: 40px;
+  background: var(--gb-border-color);
+  border-radius: 2px;
+  opacity: 0.6;
+  @include transition-fast;
 }
 
 .graph-view-chart-container {
@@ -288,6 +319,7 @@
   border: 1px solid var(--gb-border-color);
   border-radius: var(--gb-radius-lg);
   overflow: hidden;
+  margin-right: var(--gb-spacing-sm);
 }
 
 .graph-view-chart {
@@ -322,6 +354,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--gb-spacing-lg);
+  margin-left: var(--gb-spacing-sm);
 }
 
 .graph-view-info,
@@ -378,8 +411,8 @@
 }
 
 .graph-view-filter-row {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr auto;
+  display: flex;
+  align-items: center;
   gap: var(--gb-spacing-xs);
   margin-bottom: var(--gb-spacing-sm);
 
@@ -391,11 +424,27 @@
     border-radius: var(--gb-radius-sm);
     color: var(--gb-text-primary);
     font-size: var(--gb-font-size-sm);
+    min-width: 0;
 
     &:focus {
       outline: none;
       border-color: var(--gb-primary);
     }
+  }
+
+  .filter-column {
+    flex: 1;
+    min-width: 80px;
+  }
+
+  .filter-operator {
+    width: 70px;
+    flex-shrink: 0;
+  }
+
+  .filter-value {
+    flex: 1;
+    min-width: 80px;
   }
 }
 
@@ -404,6 +453,7 @@
   @include flex-center;
   width: 28px;
   height: 28px;
+  flex-shrink: 0;
   border-radius: var(--gb-radius-sm);
   color: var(--gb-text-muted);
   @include transition-fast;

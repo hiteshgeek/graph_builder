@@ -6,7 +6,7 @@ import { ConfigPanel } from './ConfigPanel.js';
 import { DataExplorer } from './DataExplorer.js';
 import { DataMapping } from './DataMapping.js';
 import { DataImporter } from './DataImporter.js';
-import { QueryEditor } from './QueryEditor.js';
+import { DataSourceEditor } from './DataSourceEditor.js';
 import { QueryResults } from './QueryResults.js';
 import { PreviewPanel } from './PreviewPanel.js';
 import { ThemeSwitcher } from './ThemeSwitcher.js';
@@ -31,7 +31,7 @@ class GraphBuilder extends BaseComponent {
         this.dataExplorer = null;
         this.dataMapping = null;
         this.dataImporter = null;
-        this.queryEditor = null;
+        this.dataSourceEditor = null;
         this.previewPanel = null;
         this.themeSwitcher = null;
         this.saveDialog = null;
@@ -165,34 +165,33 @@ class GraphBuilder extends BaseComponent {
             'data-panel': 'data'
         });
 
-        // Data panel header with import button
-        const dataPanelHeader = this.createElement('div', { className: 'gb-data-panel-header' });
-        const dataPanelTitle = this.createElement('span', { className: 'gb-data-panel-title' }, 'Data Source');
-        this.dataImporterContainer = this.createElement('div', { className: 'gb-data-importer-wrapper' });
-        dataPanelHeader.appendChild(dataPanelTitle);
-        dataPanelHeader.appendChild(this.dataImporterContainer);
-
+        // Data Explorer collapsible section
         this.dataExplorerContainer = this.createElement('div', { className: 'gb-data-explorer-wrapper' });
+        this.dataImporterContainer = this.createElement('div', { className: 'gb-data-importer-wrapper' });
+        this.dataExplorerSection = this.createCollapsibleSection('explorer', 'Database Explorer', this.dataExplorerContainer, this.getDbIcon(), this.dataImporterContainer);
 
-        // Resizer between data explorer and query
-        const dataResizer = this.createElement('div', { className: 'gb-data-resizer' });
-        this.initDataResizer(dataResizer);
-
+        // Data Source Editor collapsible section
         this.queryContainer = this.createElement('div', { className: 'gb-query-wrapper' });
+        this.dataSourceSection = this.createCollapsibleSection('datasource', 'Data Source', this.queryContainer, this.getQueryIcon());
 
-        // Resizer between query and results
-        const queryResultsResizer = this.createElement('div', { className: 'gb-data-resizer gb-query-results-resizer' });
-        this.initQueryResultsResizer(queryResultsResizer);
-
-        // Results container
+        // Query Results collapsible section
         this.queryResultsContainer = this.createElement('div', { className: 'gb-query-results-wrapper' });
+        this.queryResultsSection = this.createCollapsibleSection('results', 'Query Results', this.queryResultsContainer, this.getResultsIcon());
 
-        this.tabPanels.data.appendChild(dataPanelHeader);
-        this.tabPanels.data.appendChild(this.dataExplorerContainer);
+        // Resizers (created after all sections so references exist)
+        const dataResizer = this.createElement('div', { className: 'gb-data-resizer' });
+        const queryResultsResizer = this.createElement('div', { className: 'gb-data-resizer gb-query-results-resizer' });
+
+        // Append all elements to data panel
+        this.tabPanels.data.appendChild(this.dataExplorerSection);
         this.tabPanels.data.appendChild(dataResizer);
-        this.tabPanels.data.appendChild(this.queryContainer);
+        this.tabPanels.data.appendChild(this.dataSourceSection);
         this.tabPanels.data.appendChild(queryResultsResizer);
-        this.tabPanels.data.appendChild(this.queryResultsContainer);
+        this.tabPanels.data.appendChild(this.queryResultsSection);
+
+        // Initialize resizers after elements are in DOM
+        this.initDataResizer(dataResizer);
+        this.initQueryResultsResizer(queryResultsResizer);
 
         // Mapping tab panel
         this.tabPanels.mapping = this.createElement('div', {
@@ -228,6 +227,144 @@ class GraphBuilder extends BaseComponent {
         this.element.appendChild(main);
 
         this.container.appendChild(this.element);
+    }
+
+    /**
+     * Create a collapsible section with header and content
+     * @param {string} id - Unique section identifier
+     * @param {string} title - Section title
+     * @param {HTMLElement} contentElement - Content to show/hide
+     * @param {string} iconHtml - Optional icon HTML
+     * @param {HTMLElement} actionsElement - Optional actions element for header right side
+     */
+    createCollapsibleSection(id, title, contentElement, iconHtml = '', actionsElement = null) {
+        const section = this.createElement('div', {
+            className: 'gb-collapsible-section',
+            'data-section': id
+        });
+
+        // Header
+        const header = this.createElement('div', { className: 'gb-collapsible-header' });
+
+        const headerLeft = this.createElement('div', { className: 'gb-collapsible-header-left' });
+
+        // Chevron icon (points down when expanded, rotates to point right when collapsed)
+        const chevronIcon = this.createElement('span', { className: 'gb-collapsible-header-icon' });
+        chevronIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"/>
+        </svg>`;
+
+        headerLeft.appendChild(chevronIcon);
+
+        // Section icon (optional)
+        if (iconHtml) {
+            const sectionIcon = this.createElement('span', { className: 'gb-collapsible-header-section-icon' });
+            sectionIcon.innerHTML = iconHtml;
+            headerLeft.appendChild(sectionIcon);
+        }
+
+        const titleEl = this.createElement('span', { className: 'gb-collapsible-header-title' }, title);
+        headerLeft.appendChild(titleEl);
+
+        header.appendChild(headerLeft);
+
+        // Actions element (optional - placed on right side of header)
+        if (actionsElement) {
+            const headerActions = this.createElement('div', { className: 'gb-collapsible-header-actions' });
+            headerActions.appendChild(actionsElement);
+            header.appendChild(headerActions);
+            // Prevent actions from triggering collapse
+            this.bindEvent(headerActions, 'click', (e) => e.stopPropagation());
+        }
+
+        // Content wrapper
+        const content = this.createElement('div', { className: 'gb-collapsible-content' });
+        content.appendChild(contentElement);
+
+        section.appendChild(header);
+        section.appendChild(content);
+
+        // Toggle collapse on header click
+        this.bindEvent(header, 'click', () => {
+            const isCollapsed = section.classList.toggle('gb-collapsible-section--collapsed');
+            this.saveCollapsedState(id, isCollapsed);
+        });
+
+        // Restore collapsed state
+        if (this.isCollapsed(id)) {
+            section.classList.add('gb-collapsible-section--collapsed');
+        }
+
+        return section;
+    }
+
+    /**
+     * Save collapsed state to localStorage
+     */
+    saveCollapsedState(sectionId, isCollapsed) {
+        try {
+            const key = 'graphBuilder_collapsed';
+            const states = JSON.parse(localStorage.getItem(key) || '{}');
+            states[sectionId] = isCollapsed;
+            localStorage.setItem(key, JSON.stringify(states));
+        } catch (e) {
+            // Ignore storage errors
+        }
+    }
+
+    /**
+     * Check if a section is collapsed
+     */
+    isCollapsed(sectionId) {
+        try {
+            const key = 'graphBuilder_collapsed';
+            const states = JSON.parse(localStorage.getItem(key) || '{}');
+            return states[sectionId] === true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    /**
+     * Expand a section if it's collapsed (for resizer interaction)
+     * @param {HTMLElement} sectionElement - The collapsible section element
+     * @param {string} sectionId - The section ID for state persistence
+     */
+    expandSectionForResize(sectionElement, sectionId) {
+        if (sectionElement && sectionElement.classList.contains('gb-collapsible-section--collapsed')) {
+            sectionElement.classList.remove('gb-collapsible-section--collapsed');
+            this.saveCollapsedState(sectionId, false);
+        }
+    }
+
+    /**
+     * Get database icon SVG
+     */
+    getDbIcon() {
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+        </svg>`;
+    }
+
+    /**
+     * Get query icon SVG
+     */
+    getQueryIcon() {
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>`;
+    }
+
+    /**
+     * Get results icon SVG
+     */
+    getResultsIcon() {
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <path d="M3 9h18M9 21V9"/>
+        </svg>`;
     }
 
     getTabIcon(iconName) {
@@ -298,11 +435,11 @@ class GraphBuilder extends BaseComponent {
         this.typeSwitcher = new TypeSwitcher(this.typeSwitcherContainer);
         this.typeSwitcher.init();
 
-        // Query editor (init before data explorer so we can pass reference)
-        this.queryEditor = new QueryEditor(this.queryContainer, {
+        // Data source editor (SQL, API, Callback, Static)
+        this.dataSourceEditor = new DataSourceEditor(this.queryContainer, {
             apiBase: this.options.apiBase || ''
         });
-        this.queryEditor.init();
+        this.dataSourceEditor.init();
 
         // Data importer
         this.dataImporter = new DataImporter(this.dataImporterContainer);
@@ -312,14 +449,25 @@ class GraphBuilder extends BaseComponent {
         this.dataExplorer = new DataExplorer(this.dataExplorerContainer, {
             apiBase: this.options.apiBase || '',
             onFieldClick: (fieldName, tableName) => {
-                // Insert field name into query
-                this.queryEditor.insertText(fieldName);
+                // Insert field name into query (only works for SQL mode)
+                if (this.dataSourceEditor && this.dataSourceEditor.sqlTextarea) {
+                    const textarea = this.dataSourceEditor.sqlTextarea;
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    const value = textarea.value;
+                    const needsSpaceBefore = start > 0 && !/\s/.test(value[start - 1]);
+                    const insertText = (needsSpaceBefore ? ' ' : '') + fieldName;
+                    textarea.value = value.substring(0, start) + insertText + value.substring(end);
+                    textarea.selectionStart = textarea.selectionEnd = start + insertText.length;
+                    textarea.focus();
+                    stateManager.setQuery(textarea.value);
+                }
             },
             onTableSelect: (tableName, fields) => {
                 // Query is auto-generated by DataExplorer
             }
         });
-        this.dataExplorer.setQueryEditor(this.queryEditor);
+        this.dataExplorer.setQueryEditor(this.dataSourceEditor);
         this.dataExplorer.init();
 
         // Query results table
@@ -381,11 +529,27 @@ class GraphBuilder extends BaseComponent {
             // Set chart type
             stateManager.setChartType(graph.chartType);
 
-            // Set query in editor
-            if (graph.dataSource && graph.dataSource.query) {
-                stateManager.setQuery(graph.dataSource.query);
-                if (this.queryEditor) {
-                    this.queryEditor.setQuery(graph.dataSource.query);
+            // Set data source configuration
+            if (graph.dataSource) {
+                const dsConfig = {
+                    type: graph.dataSource.type || 'sql',
+                    query: graph.dataSource.query || '',
+                    apiUrl: graph.dataSource.apiUrl || '',
+                    apiMethod: graph.dataSource.apiMethod || 'GET',
+                    apiHeaders: graph.dataSource.apiHeaders || '',
+                    apiBody: graph.dataSource.apiBody || '',
+                    apiDataPath: graph.dataSource.apiDataPath || '',
+                    callbackClass: graph.dataSource.callbackClass || '',
+                    callbackMethod: graph.dataSource.callbackMethod || '',
+                    callbackParams: graph.dataSource.callbackParams || '',
+                    staticData: graph.dataSource.staticData || ''
+                };
+                stateManager.setDataSourceConfig(dsConfig);
+                stateManager.setQuery(dsConfig.query);
+
+                // Update the DataSourceEditor UI
+                if (this.dataSourceEditor) {
+                    this.dataSourceEditor.setDataSourceConfig(dsConfig);
                 }
             }
 
@@ -403,11 +567,11 @@ class GraphBuilder extends BaseComponent {
                 stateManager.setDataMapping(graph.dataMapping);
             }
 
-            // Execute the query to load data
-            if (graph.dataSource && graph.dataSource.query && this.queryEditor) {
+            // Execute the data source to load data
+            if (graph.dataSource && this.dataSourceEditor) {
                 // Small delay to let UI update first
                 setTimeout(() => {
-                    this.queryEditor.execute();
+                    this.dataSourceEditor.execute();
                 }, 100);
             }
 
@@ -526,9 +690,14 @@ class GraphBuilder extends BaseComponent {
         let startTopHeight = 0;
 
         const onMouseDown = (e) => {
+            // Expand collapsed sections before resizing
+            this.expandSectionForResize(this.dataExplorerSection, 'explorer');
+            this.expandSectionForResize(this.dataSourceSection, 'datasource');
+
             isResizing = true;
             startY = e.clientY;
-            startTopHeight = this.dataExplorerContainer.offsetHeight;
+            // Use the collapsible section wrapper height
+            startTopHeight = this.dataExplorerSection.offsetHeight;
             document.body.style.cursor = 'row-resize';
             document.body.style.userSelect = 'none';
             resizer.classList.add('gb-data-resizer--active');
@@ -551,8 +720,9 @@ class GraphBuilder extends BaseComponent {
             // Calculate flex basis percentages
             const topPercent = (newTopHeight / parentHeight) * 100;
 
-            this.dataExplorerContainer.style.flex = `0 0 ${topPercent}%`;
-            this.queryContainer.style.flex = '1 1 auto';
+            // Apply to collapsible section wrappers
+            this.dataExplorerSection.style.flex = `0 0 ${topPercent}%`;
+            this.dataSourceSection.style.flex = '1 1 auto';
         };
 
         const onMouseUp = () => {
@@ -584,9 +754,14 @@ class GraphBuilder extends BaseComponent {
         let startQueryHeight = 0;
 
         const onMouseDown = (e) => {
+            // Expand collapsed sections before resizing
+            this.expandSectionForResize(this.dataSourceSection, 'datasource');
+            this.expandSectionForResize(this.queryResultsSection, 'results');
+
             isResizing = true;
             startY = e.clientY;
-            startQueryHeight = this.queryContainer.offsetHeight;
+            // Use the collapsible section wrapper height
+            startQueryHeight = this.dataSourceSection.offsetHeight;
             document.body.style.cursor = 'row-resize';
             document.body.style.userSelect = 'none';
             resizer.classList.add('gb-data-resizer--active');
@@ -603,8 +778,9 @@ class GraphBuilder extends BaseComponent {
             // Constrain heights
             newQueryHeight = Math.max(minHeight, newQueryHeight);
 
-            this.queryContainer.style.flex = `0 0 ${newQueryHeight}px`;
-            this.queryResultsContainer.style.flex = '1 1 auto';
+            // Apply to collapsible section wrappers
+            this.dataSourceSection.style.flex = `0 0 ${newQueryHeight}px`;
+            this.queryResultsSection.style.flex = '1 1 auto';
         };
 
         const onMouseUp = () => {
@@ -616,7 +792,7 @@ class GraphBuilder extends BaseComponent {
 
             // Save height to localStorage
             try {
-                localStorage.setItem('graphBuilder_queryHeight', this.queryContainer.style.flex);
+                localStorage.setItem('graphBuilder_queryHeight', this.dataSourceSection.style.flex);
             } catch (e) {
                 // Ignore
             }
@@ -637,8 +813,8 @@ class GraphBuilder extends BaseComponent {
         try {
             const savedHeight = localStorage.getItem('graphBuilder_queryHeight');
             if (savedHeight) {
-                this.queryContainer.style.flex = savedHeight;
-                this.queryResultsContainer.style.flex = '1 1 auto';
+                this.dataSourceSection.style.flex = savedHeight;
+                this.queryResultsSection.style.flex = '1 1 auto';
             }
         } catch (e) {
             // Ignore
@@ -652,14 +828,14 @@ class GraphBuilder extends BaseComponent {
     }
 
     setQuery(sql) {
-        if (this.queryEditor) {
-            this.queryEditor.setQuery(sql);
+        if (this.dataSourceEditor) {
+            this.dataSourceEditor.setQuery(sql);
         }
     }
 
     executeQuery() {
-        if (this.queryEditor) {
-            this.queryEditor.execute();
+        if (this.dataSourceEditor) {
+            this.dataSourceEditor.execute();
         }
     }
 
@@ -706,9 +882,9 @@ class GraphBuilder extends BaseComponent {
             this.dataImporter.destroy();
             this.dataImporter = null;
         }
-        if (this.queryEditor) {
-            this.queryEditor.destroy();
-            this.queryEditor = null;
+        if (this.dataSourceEditor) {
+            this.dataSourceEditor.destroy();
+            this.dataSourceEditor = null;
         }
         if (this.queryResults) {
             this.queryResults.destroy();

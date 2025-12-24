@@ -141,6 +141,24 @@ class ApiClient {
     }
 
     /**
+     * Fetch data from external API source
+     * @param {Object} config API configuration
+     * @returns {Promise<Object>}
+     */
+    async fetchApiSource(config) {
+        return this.post('api/datasource/fetch-api.php', config);
+    }
+
+    /**
+     * Execute PHP callback to fetch data
+     * @param {Object} config Callback configuration
+     * @returns {Promise<Object>}
+     */
+    async executeCallback(config) {
+        return this.post('api/datasource/execute-callback.php', config);
+    }
+
+    /**
      * Handle response
      * @param {Response} response
      * @returns {Promise<Object>}

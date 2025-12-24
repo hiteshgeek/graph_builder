@@ -25,6 +25,19 @@ class StateManager {
                 nameField: null,  // Column name for slice names
                 valueField: null  // Column name for slice values
             },
+            dataSourceConfig: {
+                type: 'sql',      // sql, api, callback, static
+                query: '',        // SQL query
+                apiUrl: '',       // API endpoint URL
+                apiMethod: 'GET', // GET or POST
+                apiHeaders: '',   // JSON string of headers
+                apiBody: '',      // Request body for POST
+                apiDataPath: '',  // Dot notation path to data in response
+                callbackClass: '',    // PHP class name
+                callbackMethod: '',   // PHP method name
+                callbackParams: '',   // JSON string of params
+                staticData: ''    // JSON string of static data
+            },
             config: {
                 base: { ...DEFAULT_CONFIG.base },
                 line: { ...DEFAULT_CONFIG.line },
@@ -84,6 +97,10 @@ class StateManager {
         return this.state.dataMapping;
     }
 
+    getDataSourceConfig() {
+        return this.state.dataSourceConfig;
+    }
+
     // Specific setters
     setChartType(type) {
         if (this.state.chartType !== type) {
@@ -126,6 +143,15 @@ class StateManager {
         this.state.dataMapping = { ...this.state.dataMapping, ...mapping };
         this.saveToStorage();
         eventBus.emit(EVENTS.CONFIG_UPDATED, { dataMapping: this.state.dataMapping });
+    }
+
+    setDataSourceConfig(config) {
+        this.state.dataSourceConfig = { ...this.state.dataSourceConfig, ...config };
+        // Also update query for backwards compatibility
+        if (config.type === 'sql' && config.query !== undefined) {
+            this.state.query = config.query;
+        }
+        this.saveToStorage();
     }
 
     autoSetDataMapping(columns) {
@@ -185,6 +211,7 @@ class StateManager {
                 chartType: this.state.chartType,
                 query: this.state.query,
                 dataMapping: this.state.dataMapping,
+                dataSourceConfig: this.state.dataSourceConfig,
                 config: this.state.config
             };
             localStorage.setItem(this.storageKey, JSON.stringify(dataToSave));
@@ -203,6 +230,7 @@ class StateManager {
                     chartType: parsed.chartType || this.state.chartType,
                     query: parsed.query || '',
                     dataMapping: parsed.dataMapping || this.state.dataMapping,
+                    dataSourceConfig: { ...this.state.dataSourceConfig, ...(parsed.dataSourceConfig || {}) },
                     config: this.mergeConfig(this.state.config, parsed.config || {})
                 };
             }

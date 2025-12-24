@@ -283,19 +283,27 @@ class GraphConfig
 
         $type = isset($data['type']) ? $data['type'] : 'sql';
 
+        // Helper to encode value if it's an array, or keep as string if already JSON
+        $encodeIfNeeded = function($value) {
+            if (is_array($value)) {
+                return json_encode($value);
+            }
+            return $value; // Keep as-is if already a string (JSON from frontend)
+        };
+
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(array(
             $type,
             isset($data['query']) ? $data['query'] : null,
             isset($data['apiUrl']) ? $data['apiUrl'] : null,
             isset($data['apiMethod']) ? $data['apiMethod'] : 'GET',
-            isset($data['apiHeaders']) ? json_encode($data['apiHeaders']) : null,
+            isset($data['apiHeaders']) ? $encodeIfNeeded($data['apiHeaders']) : null,
             isset($data['apiBody']) ? $data['apiBody'] : null,
             isset($data['apiDataPath']) ? $data['apiDataPath'] : null,
             isset($data['callbackClass']) ? $data['callbackClass'] : null,
             isset($data['callbackMethod']) ? $data['callbackMethod'] : null,
-            isset($data['callbackParams']) ? json_encode($data['callbackParams']) : null,
-            isset($data['staticData']) ? json_encode($data['staticData']) : null,
+            isset($data['callbackParams']) ? $encodeIfNeeded($data['callbackParams']) : null,
+            isset($data['staticData']) ? $encodeIfNeeded($data['staticData']) : null,
             isset($data['transformerClass']) ? $data['transformerClass'] : null,
             isset($data['transformerMethod']) ? $data['transformerMethod'] : null,
             isset($data['cacheTtl']) ? (int) $data['cacheTtl'] : 0
@@ -336,8 +344,12 @@ class GraphConfig
             if (isset($data[$input])) {
                 $updates[] = "{$column} = ?";
                 $value = $data[$input];
+                // Encode as JSON if array, keep as-is if already string
                 if (in_array($column, array('api_headers', 'callback_params', 'static_data'))) {
-                    $value = json_encode($value);
+                    if (is_array($value)) {
+                        $value = json_encode($value);
+                    }
+                    // Keep as-is if already a string (JSON from frontend)
                 }
                 $params[] = $value;
             }

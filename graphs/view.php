@@ -63,6 +63,15 @@ function getSourceTypeInfo($type) {
             </div>
             <div class="usage-header-actions">
                 <div id="theme-switcher"></div>
+                <?php if ($graph): ?>
+                <a href="<?= get_base_path() ?>/?edit=<?= $graph['graph_id'] ?>" class="usage-back-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    Edit
+                </a>
+                <?php endif; ?>
                 <a href="<?= get_base_path() ?>/graphs/" class="usage-back-link">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
@@ -93,9 +102,9 @@ function getSourceTypeInfo($type) {
 
         <!-- Graph Info & Filters -->
         <section class="usage-section">
-            <div class="graph-view-layout">
+            <div class="graph-view-layout" id="viewLayout">
                 <!-- Left: Chart -->
-                <div class="graph-view-chart-container">
+                <div class="graph-view-chart-container" id="chartContainer">
                     <div class="graph-view-chart" id="chart"></div>
                     <div class="graph-view-chart-loading" id="chartLoading">
                         <div class="graph-view-spinner"></div>
@@ -103,8 +112,13 @@ function getSourceTypeInfo($type) {
                     </div>
                 </div>
 
+                <!-- Horizontal Resizer -->
+                <div class="graph-view-resizer" id="viewResizer">
+                    <div class="graph-view-resizer-handle"></div>
+                </div>
+
                 <!-- Right: Info & Filters -->
-                <div class="graph-view-sidebar">
+                <div class="graph-view-sidebar" id="viewSidebar">
                     <!-- Graph Info -->
                     <div class="graph-view-info">
                         <h3>Graph Details</h3>
@@ -435,6 +449,95 @@ function getSourceTypeInfo($type) {
             return div.innerHTML;
         }
 
+        // Horizontal Resizer for sidebar width
+        const SIDEBAR_WIDTH_KEY = 'graphBuilder_viewSidebarWidth';
+        let isResizing = false;
+
+        function initResizer() {
+            const layout = document.getElementById('viewLayout');
+            const resizer = document.getElementById('viewResizer');
+            const sidebar = document.getElementById('viewSidebar');
+
+            if (!layout || !resizer || !sidebar) return;
+
+            // Load saved width
+            const savedWidth = getSavedSidebarWidth();
+            if (savedWidth) {
+                layout.style.gridTemplateColumns = '1fr 8px ' + savedWidth + 'px';
+            }
+
+            // Mouse down on resizer
+            resizer.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                isResizing = true;
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+
+                // Add overlay to prevent iframe issues
+                const overlay = document.createElement('div');
+                overlay.id = 'resizeOverlay';
+                overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;cursor:col-resize;';
+                document.body.appendChild(overlay);
+            });
+
+            // Mouse move
+            document.addEventListener('mousemove', function(e) {
+                if (!isResizing) return;
+
+                const layoutRect = layout.getBoundingClientRect();
+                const newSidebarWidth = layoutRect.right - e.clientX;
+
+                // Constrain width between 250px and 600px
+                const minWidth = 250;
+                const maxWidth = 600;
+                const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newSidebarWidth));
+
+                layout.style.gridTemplateColumns = '1fr 8px ' + constrainedWidth + 'px';
+
+                // Resize chart
+                if (chart) {
+                    chart.resize();
+                }
+            });
+
+            // Mouse up
+            document.addEventListener('mouseup', function() {
+                if (!isResizing) return;
+
+                isResizing = false;
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+
+                // Remove overlay
+                const overlay = document.getElementById('resizeOverlay');
+                if (overlay) {
+                    overlay.remove();
+                }
+
+                // Save width - get the third column (sidebar) from grid
+                const currentColumns = getComputedStyle(layout).gridTemplateColumns.split(' ');
+                if (currentColumns.length >= 3) {
+                    const sidebarWidth = parseInt(currentColumns[2]);
+                    saveSidebarWidth(sidebarWidth);
+                }
+            });
+        }
+
+        function getSavedSidebarWidth() {
+            try {
+                const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
+                return saved ? parseInt(saved) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function saveSidebarWidth(width) {
+            try {
+                localStorage.setItem(SIDEBAR_WIDTH_KEY, width);
+            } catch (e) {}
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             createThemeSwitcher();
@@ -447,6 +550,9 @@ function getSourceTypeInfo($type) {
                     applyTheme('system');
                 }
             });
+
+            // Initialize resizer
+            initResizer();
 
             // Handle chart resize
             window.addEventListener('resize', function() {
