@@ -22,6 +22,7 @@ const rev = require("gulp-rev");
 const config = {
   assetsCssDir: "src/assets/scss",
   assetsJsDir: "src/assets/js",
+  assetsImagesDir: "src/assets/images",
   libCssDir: "src/library/scss",
   libJsDir: "src/library/js",
   nodeDir: "node_modules",
@@ -31,6 +32,7 @@ const config = {
   jsManifestPath: "dist/rev/manifest-js.json",
   cssOutDir: "dist/css",
   jsOutDir: "dist/js",
+  imagesOutDir: "assets/images",
 };
 
 // Utility: Remove old hashed files not in manifest
@@ -226,6 +228,13 @@ gulp.task("clean", async function () {
   await rimraf("dist/**", { glob: true });
 });
 
+// Copy images from src/assets/images to assets/images
+gulp.task("images", function () {
+  return gulp
+    .src(config.assetsImagesDir + "/**/*")
+    .pipe(gulp.dest(config.imagesOutDir));
+});
+
 const styleEntries = [
   [[config.libCssDir + "/main.scss"], "graph-creator.css"],
   [[config.assetsCssDir + "/main.scss"], "main.css"],
@@ -264,18 +273,18 @@ gulp.task("watch", function () {
 });
 
 // Default and dev/prod tasks (must be last)
-gulp.task("dev", gulp.series("clean", "styles-clean", "scripts-clean"));
+gulp.task("dev", gulp.series("clean", "styles-clean", "scripts-clean", "images"));
 
 // Default and dev/prod tasks (must be last)
 gulp.task(
   "dev-with-watch",
-  gulp.series("clean", "styles-clean", "scripts-clean", "watch")
+  gulp.series("clean", "styles-clean", "scripts-clean", "images", "watch")
 );
 
 // Prod task: set NODE_ENV and run the full clean/build without sourcemaps
 gulp.task(
   "prod",
-  gulp.series(setProdEnv, "clean", "styles-clean", "scripts-clean")
+  gulp.series(setProdEnv, "clean", "styles-clean", "scripts-clean", "images")
 );
 
 gulp.task("default", gulp.series("dev"));

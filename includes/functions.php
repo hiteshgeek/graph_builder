@@ -74,5 +74,8 @@ function asset($logical, $variant = null)
 function favicon()
 {
       $basePath = get_base_path();
-      echo '<link rel="icon" type="image/svg+xml" href="' . $basePath . '/assets/images/favicon.svg">';
+      echo '<link rel="icon" href="' . $basePath . '/favicon.ico" sizes="32x32">' . "\n";
+      echo '    <link rel="icon" type="image/svg+xml" href="' . $basePath . '/assets/images/favicon.svg">' . "\n";
+      echo '    <link rel="icon" type="image/png" sizes="32x32" href="' . $basePath . '/assets/images/favicon-32.png">' . "\n";
+      echo '    <link rel="apple-touch-icon" href="' . $basePath . '/assets/images/favicon-180.png">';
 }
