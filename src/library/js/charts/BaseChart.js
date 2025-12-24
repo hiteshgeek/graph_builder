@@ -1,5 +1,7 @@
-import * as echarts from 'echarts';
 import { debounce } from '../utils/helpers.js';
+
+// Use global echarts (loaded via CDN)
+const echarts = window.echarts;
 
 /**
  * BaseChart - Abstract base class for all chart types
