@@ -1,0 +1,117 @@
+@use "../abstracts/mixins" as *;
+
+// Query Results Component Styles
+
+.gb-query-results-wrapper {
+  flex: 1 1 auto;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.gb-query-results {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--gb-bg-secondary);
+  border-radius: var(--gb-radius-md);
+  overflow: hidden;
+}
+
+.gb-query-results-header {
+  @include flex-between;
+  padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+  background: var(--gb-bg-tertiary);
+  border-bottom: 1px solid var(--gb-border-color);
+  flex-shrink: 0;
+}
+
+.gb-query-results-title {
+  font-size: var(--gb-font-size-sm);
+  font-weight: 600;
+  color: var(--gb-text-primary);
+}
+
+.gb-query-results-count {
+  font-size: var(--gb-font-size-xs);
+  color: var(--gb-text-muted);
+}
+
+.gb-query-results-table {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--gb-font-size-xs);
+  }
+
+  th,
+  td {
+    padding: var(--gb-spacing-xs) var(--gb-spacing-sm);
+    text-align: left;
+    border-bottom: 1px solid var(--gb-border-color-light);
+    white-space: nowrap;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  th {
+    background: var(--gb-bg-tertiary);
+    font-weight: 600;
+    color: var(--gb-text-secondary);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  td {
+    color: var(--gb-text-primary);
+  }
+
+  tr:hover td {
+    background: var(--gb-bg-hover);
+  }
+
+  .gb-null,
+  .gb-empty {
+    color: var(--gb-text-muted);
+    font-style: italic;
+  }
+}
+
+.gb-query-results-empty {
+  @include flex-center;
+  flex-direction: column;
+  gap: var(--gb-spacing-sm);
+  height: 100%;
+  min-height: 120px;
+  color: var(--gb-text-muted);
+
+  svg {
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+    font-size: var(--gb-font-size-sm);
+  }
+}
+
+.gb-query-results-notice {
+  padding: var(--gb-spacing-xs) var(--gb-spacing-sm);
+  background: var(--gb-bg-tertiary);
+  border-top: 1px solid var(--gb-border-color);
+  font-size: var(--gb-font-size-xs);
+  color: var(--gb-text-muted);
+  text-align: center;
+}
+
+// Query/Results resizer specific styling
+.gb-query-results-resizer {
+  flex-shrink: 0;
+}

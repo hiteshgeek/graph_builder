@@ -1,13 +1,16 @@
 import { BaseComponent } from '../core/BaseComponent.js';
 import { stateManager } from '../core/StateManager.js';
+import { apiClient } from '../data/ApiClient.js';
 import { TypeSwitcher } from './TypeSwitcher.js';
 import { ConfigPanel } from './ConfigPanel.js';
 import { DataExplorer } from './DataExplorer.js';
 import { DataMapping } from './DataMapping.js';
 import { DataImporter } from './DataImporter.js';
 import { QueryEditor } from './QueryEditor.js';
+import { QueryResults } from './QueryResults.js';
 import { PreviewPanel } from './PreviewPanel.js';
 import { ThemeSwitcher } from './ThemeSwitcher.js';
+import { SaveGraphDialog } from './SaveGraphDialog.js';
 import { debounce } from '../utils/helpers.js';
 
 // Sidebar tab definitions
@@ -31,6 +34,8 @@ class GraphBuilder extends BaseComponent {
         this.queryEditor = null;
         this.previewPanel = null;
         this.themeSwitcher = null;
+        this.saveDialog = null;
+        this.queryResults = null;
         this.activeTab = 'config';
     }
 
@@ -40,6 +45,11 @@ class GraphBuilder extends BaseComponent {
         this.setupResizeHandler();
         this.restoreActiveTab();
         this.initialized = true;
+
+        // Check if editing a saved graph
+        if (window.GRAPH_BUILDER_EDIT_ID) {
+            this.loadSavedGraph(window.GRAPH_BUILDER_EDIT_ID);
+        }
     }
 
     render() {
@@ -61,6 +71,35 @@ class GraphBuilder extends BaseComponent {
         // Theme switcher container
         this.themeSwitcherContainer = this.createElement('div', { className: 'gb-header-theme' });
         actions.appendChild(this.themeSwitcherContainer);
+
+        // Save button
+        const saveBtn = this.createElement('button', {
+            className: 'gb-header-save-btn',
+            type: 'button',
+            title: 'Save graph configuration'
+        });
+        saveBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+            <polyline points="17,21 17,13 7,13 7,21"/>
+            <polyline points="7,3 7,8 15,8"/>
+        </svg>
+        Save`;
+        this.bindEvent(saveBtn, 'click', () => this.showSaveDialog());
+        actions.appendChild(saveBtn);
+
+        // Saved graphs link
+        const graphsLink = this.createElement('a', {
+            className: 'gb-header-link',
+            href: 'graphs/'
+        });
+        graphsLink.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/>
+        </svg>
+        Saved`;
+        actions.appendChild(graphsLink);
 
         // Usage link (after theme switcher, like in usage page)
         const usageLink = this.createElement('a', {
@@ -140,10 +179,20 @@ class GraphBuilder extends BaseComponent {
         this.initDataResizer(dataResizer);
 
         this.queryContainer = this.createElement('div', { className: 'gb-query-wrapper' });
+
+        // Resizer between query and results
+        const queryResultsResizer = this.createElement('div', { className: 'gb-data-resizer gb-query-results-resizer' });
+        this.initQueryResultsResizer(queryResultsResizer);
+
+        // Results container
+        this.queryResultsContainer = this.createElement('div', { className: 'gb-query-results-wrapper' });
+
         this.tabPanels.data.appendChild(dataPanelHeader);
         this.tabPanels.data.appendChild(this.dataExplorerContainer);
         this.tabPanels.data.appendChild(dataResizer);
         this.tabPanels.data.appendChild(this.queryContainer);
+        this.tabPanels.data.appendChild(queryResultsResizer);
+        this.tabPanels.data.appendChild(this.queryResultsContainer);
 
         // Mapping tab panel
         this.tabPanels.mapping = this.createElement('div', {
@@ -273,6 +322,10 @@ class GraphBuilder extends BaseComponent {
         this.dataExplorer.setQueryEditor(this.queryEditor);
         this.dataExplorer.init();
 
+        // Query results table
+        this.queryResults = new QueryResults(this.queryResultsContainer);
+        this.queryResults.init();
+
         // Data mapping (column selection for chart axes)
         this.dataMapping = new DataMapping(this.dataMappingContainer);
         this.dataMapping.init();
@@ -284,6 +337,97 @@ class GraphBuilder extends BaseComponent {
         // Preview panel
         this.previewPanel = new PreviewPanel(this.previewContainer);
         this.previewPanel.init();
+
+        // Save dialog (appended to body for proper modal positioning)
+        this.saveDialog = new SaveGraphDialog(document.body);
+        this.saveDialog.init();
+    }
+
+    /**
+     * Show the save graph dialog
+     */
+    showSaveDialog() {
+        if (this.saveDialog) {
+            this.saveDialog.open(this.editingGraph || null);
+        }
+    }
+
+    /**
+     * Load a saved graph configuration for editing
+     * @param {number} graphId The graph ID to load
+     */
+    async loadSavedGraph(graphId) {
+        try {
+            const result = await apiClient.getGraph(graphId);
+
+            if (!result.success || !result.data) {
+                console.error('Failed to load graph:', result.error);
+                return;
+            }
+
+            const graph = result.data;
+
+            // Store the editing graph info for later use (save dialog, header display)
+            this.editingGraph = {
+                id: graph.id,
+                name: graph.name,
+                slug: graph.slug,
+                description: graph.description
+            };
+
+            // Update header to show we're editing
+            this.updateHeaderForEditing(graph.name);
+
+            // Set chart type
+            stateManager.setChartType(graph.chartType);
+
+            // Set query in editor
+            if (graph.dataSource && graph.dataSource.query) {
+                stateManager.setQuery(graph.dataSource.query);
+                if (this.queryEditor) {
+                    this.queryEditor.setQuery(graph.dataSource.query);
+                }
+            }
+
+            // Set config (base and type-specific)
+            if (graph.configBase) {
+                stateManager.setBaseConfig(graph.configBase);
+            }
+
+            if (graph.configType) {
+                stateManager.setTypeConfig(graph.chartType, graph.configType);
+            }
+
+            // Set data mapping
+            if (graph.dataMapping) {
+                stateManager.setDataMapping(graph.dataMapping);
+            }
+
+            // Execute the query to load data
+            if (graph.dataSource && graph.dataSource.query && this.queryEditor) {
+                // Small delay to let UI update first
+                setTimeout(() => {
+                    this.queryEditor.execute();
+                }, 100);
+            }
+
+            // Switch to data tab to show the loaded query
+            this.switchTab('data');
+
+        } catch (error) {
+            console.error('Error loading saved graph:', error);
+        }
+    }
+
+    /**
+     * Update header to show editing mode with graph name
+     * @param {string} graphName The name of the graph being edited
+     */
+    updateHeaderForEditing(graphName) {
+        const logo = this.element.querySelector('.gb-logo');
+        if (logo) {
+            logo.innerHTML = `Graph Builder <span class="gb-editing-indicator">Editing: ${graphName}</span>`;
+        }
     }
 
     setupResizeHandler() {
@@ -431,6 +575,76 @@ class GraphBuilder extends BaseComponent {
         );
     }
 
+    /**
+     * Initialize the resizer between query editor and results
+     */
+    initQueryResultsResizer(resizer) {
+        let isResizing = false;
+        let startY = 0;
+        let startQueryHeight = 0;
+
+        const onMouseDown = (e) => {
+            isResizing = true;
+            startY = e.clientY;
+            startQueryHeight = this.queryContainer.offsetHeight;
+            document.body.style.cursor = 'row-resize';
+            document.body.style.userSelect = 'none';
+            resizer.classList.add('gb-data-resizer--active');
+        };
+
+        const onMouseMove = (e) => {
+            if (!isResizing) return;
+
+            const deltaY = e.clientY - startY;
+            const minHeight = 80; // Minimum height for each section
+
+            let newQueryHeight = startQueryHeight + deltaY;
+
+            // Constrain heights
+            newQueryHeight = Math.max(minHeight, newQueryHeight);
+
+            this.queryContainer.style.flex = `0 0 ${newQueryHeight}px`;
+            this.queryResultsContainer.style.flex = '1 1 auto';
+        };
+
+        const onMouseUp = () => {
+            if (!isResizing) return;
+            isResizing = false;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            resizer.classList.remove('gb-data-resizer--active');
+
+            // Save height to localStorage
+            try {
+                localStorage.setItem('graphBuilder_queryHeight', this.queryContainer.style.flex);
+            } catch (e) {
+                // Ignore
+            }
+        };
+
+        resizer.addEventListener('mousedown', onMouseDown);
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+
+        // Store for cleanup
+        this.eventBindings.push(
+            { element: resizer, event: 'mousedown', handler: onMouseDown },
+            { element: document, event: 'mousemove', handler: onMouseMove },
+            { element: document, event: 'mouseup', handler: onMouseUp }
+        );
+
+        // Restore saved height
+        try {
+            const savedHeight = localStorage.getItem('graphBuilder_queryHeight');
+            if (savedHeight) {
+                this.queryContainer.style.flex = savedHeight;
+                this.queryResultsContainer.style.flex = '1 1 auto';
+            }
+        } catch (e) {
+            // Ignore
+        }
+    }
+
     // Public API
 
     setChartType(type) {
@@ -496,6 +710,10 @@ class GraphBuilder extends BaseComponent {
             this.queryEditor.destroy();
             this.queryEditor = null;
         }
+        if (this.queryResults) {
+            this.queryResults.destroy();
+            this.queryResults = null;
+        }
         if (this.previewPanel) {
             this.previewPanel.destroy();
             this.previewPanel = null;
@@ -503,6 +721,10 @@ class GraphBuilder extends BaseComponent {
         if (this.themeSwitcher) {
             this.themeSwitcher.destroy();
             this.themeSwitcher = null;
+        }
+        if (this.saveDialog) {
+            this.saveDialog.destroy();
+            this.saveDialog = null;
         }
         super.destroy();
     }

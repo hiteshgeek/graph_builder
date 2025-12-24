@@ -91,6 +91,56 @@ class ApiClient {
     }
 
     /**
+     * Save graph configuration
+     * @param {Object} data Graph configuration data
+     * @returns {Promise<Object>}
+     */
+    async saveGraph(data) {
+        return this.post('api/graphs/save.php', data);
+    }
+
+    /**
+     * List saved graphs
+     * @param {Object} params Query params (chartType, search, limit, offset)
+     * @returns {Promise<Object>}
+     */
+    async listGraphs(params = {}) {
+        return this.get('api/graphs/list.php', params);
+    }
+
+    /**
+     * Get a single graph by ID or slug
+     * @param {string|number} identifier Graph ID or slug
+     * @returns {Promise<Object>}
+     */
+    async getGraph(identifier) {
+        const param = typeof identifier === 'number' ? { id: identifier } : { slug: identifier };
+        return this.get('api/graphs/get.php', param);
+    }
+
+    /**
+     * Delete a graph
+     * @param {number} id Graph ID
+     * @returns {Promise<Object>}
+     */
+    async deleteGraph(id) {
+        return this.post('api/graphs/delete.php', { id });
+    }
+
+    /**
+     * Render a graph with filters
+     * @param {string|number} identifier Graph ID or slug
+     * @param {Array} filters Runtime filters
+     * @returns {Promise<Object>}
+     */
+    async renderGraph(identifier, filters = []) {
+        const data = typeof identifier === 'number'
+            ? { id: identifier, filters }
+            : { slug: identifier, filters };
+        return this.post('api/graphs/render.php', data);
+    }
+
+    /**
      * Handle response
      * @param {Response} response
      * @returns {Promise<Object>}
@@ -112,4 +162,7 @@ class ApiClient {
     }
 }
 
-export { ApiClient };
+// Singleton instance
+const apiClient = new ApiClient();
+
+export { ApiClient, apiClient };

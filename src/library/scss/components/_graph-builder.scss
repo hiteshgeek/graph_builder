@@ -27,6 +27,16 @@
     font-size: var(--gb-font-size-xl);
     font-weight: 600;
     color: var(--gb-text-primary);
+
+    .gb-editing-indicator {
+        font-size: var(--gb-font-size-sm);
+        font-weight: 500;
+        color: var(--gb-primary);
+        margin-left: var(--gb-spacing-sm);
+        padding: 2px var(--gb-spacing-sm);
+        background: rgba(79, 70, 229, 0.1);
+        border-radius: var(--gb-radius-sm);
+    }
 }
 
 .gb-header-actions {

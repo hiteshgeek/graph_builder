@@ -20,6 +20,9 @@
 @use 'components/data-mapping';
 @use 'components/data-importer';
 @use 'components/query-editor';
+@use 'components/query-results';
 @use 'components/preview-panel';
 @use 'components/theme-switcher';
 @use 'components/usage-page';
+@use 'components/save-dialog';
+@use 'components/graphs-page';

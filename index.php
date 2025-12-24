@@ -1,5 +1,8 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
+
+// Check if editing an existing graph
+$editGraphId = isset($_GET['edit']) ? (int) $_GET['edit'] : null;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -16,6 +19,12 @@ require_once __DIR__ . '/includes/functions.php';
 </head>
 <body>
     <div id="graph-builder"></div>
+
+    <?php if ($editGraphId): ?>
+    <script>
+        window.GRAPH_BUILDER_EDIT_ID = <?= $editGraphId ?>;
+    </script>
+    <?php endif; ?>
 
     <!-- Highlight.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
