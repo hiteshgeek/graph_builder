@@ -118,29 +118,141 @@ class DataSourceEditor extends BaseComponent {
         header.appendChild(hint);
         header.appendChild(buttonsContainer);
 
-        // Editor
-        const editorContainer = this.createElement('div', { className: 'gb-datasource-editor-container' });
+        // Editor with syntax highlighting overlay
+        const editorContainer = this.createElement('div', { className: 'gb-query-editor-container' });
+
+        // Highlighted code backdrop
+        const highlight = this.createElement('pre', { className: 'gb-query-highlight' });
+        const highlightCode = this.createElement('code', { className: 'gb-query-highlight-code' });
+        highlight.appendChild(highlightCode);
+        this.sqlHighlightCode = highlightCode;
+        this.sqlHighlight = highlight;
 
         this.sqlTextarea = this.createElement('textarea', {
-            className: 'gb-datasource-textarea',
+            className: 'gb-query-input',
             placeholder: 'SELECT column1, column2\nFROM table_name\nWHERE condition = value\nLIMIT 100',
-            spellcheck: 'false'
+            spellcheck: 'false',
+            autocomplete: 'off',
+            autocorrect: 'off',
+            autocapitalize: 'off'
         });
 
-        this.bindEvent(this.sqlTextarea, 'input', () => this.onSqlInput());
+        // Update highlight on input
+        const updateHighlight = () => {
+            this.sqlHighlightCode.innerHTML = this.highlightSQL(this.sqlTextarea.value) + '\n';
+        };
+        this.updateSqlHighlight = updateHighlight;
+
+        // Sync scroll between textarea and highlight
+        const syncScroll = () => {
+            highlight.scrollTop = this.sqlTextarea.scrollTop;
+            highlight.scrollLeft = this.sqlTextarea.scrollLeft;
+        };
+
+        this.bindEvent(this.sqlTextarea, 'input', () => {
+            updateHighlight();
+            this.onSqlInput();
+        });
+        this.bindEvent(this.sqlTextarea, 'scroll', syncScroll);
         this.bindEvent(this.sqlTextarea, 'keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
                 this.executeSql();
             }
+            // Handle Tab key for indentation
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = this.sqlTextarea.selectionStart;
+                const end = this.sqlTextarea.selectionEnd;
+                this.sqlTextarea.value = this.sqlTextarea.value.substring(0, start) + '  ' + this.sqlTextarea.value.substring(end);
+                this.sqlTextarea.selectionStart = this.sqlTextarea.selectionEnd = start + 2;
+                updateHighlight();
+            }
         });
 
+        editorContainer.appendChild(highlight);
         editorContainer.appendChild(this.sqlTextarea);
+
+        // Initial highlight
+        updateHighlight();
 
         panel.appendChild(header);
         panel.appendChild(editorContainer);
 
         return panel;
+    }
+
+    /**
+     * Syntax highlight SQL for display
+     * Returns HTML with span-wrapped tokens
+     */
+    highlightSQL(sql) {
+        if (!sql) return '';
+
+        // Escape HTML
+        let highlighted = sql
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+        // Protect strings first (single and double quoted)
+        const strings = [];
+        highlighted = highlighted.replace(/'[^']*'|"[^"]*"/g, function(match) {
+            const placeholder = '___STR' + strings.length + '___';
+            strings.push('<span class="gb-sql-string">' + match + '</span>');
+            return placeholder;
+        });
+
+        // Protect numbers
+        highlighted = highlighted.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="gb-sql-number">$1</span>');
+
+        // Keywords (major clauses)
+        const majorKeywords = ['SELECT', 'FROM', 'WHERE', 'ORDER BY', 'GROUP BY', 'HAVING', 'LIMIT', 'OFFSET',
+            'INSERT INTO', 'UPDATE', 'DELETE FROM', 'SET', 'VALUES', 'UNION ALL', 'UNION'];
+
+        majorKeywords.forEach(function(kw) {
+            const regex = new RegExp('\\b(' + kw + ')\\b', 'gi');
+            highlighted = highlighted.replace(regex, '<span class="gb-sql-keyword">$1</span>');
+        });
+
+        // JOIN keywords
+        const joinKeywords = ['JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 'OUTER JOIN', 'CROSS JOIN',
+            'LEFT OUTER JOIN', 'RIGHT OUTER JOIN', 'FULL OUTER JOIN', 'ON'];
+
+        joinKeywords.forEach(function(kw) {
+            const regex = new RegExp('\\b(' + kw + ')\\b', 'gi');
+            highlighted = highlighted.replace(regex, '<span class="gb-sql-keyword">$1</span>');
+        });
+
+        // Operators and conditions
+        const operators = ['AND', 'OR', 'NOT', 'IN', 'BETWEEN', 'LIKE', 'IS', 'NULL', 'AS', 'ASC', 'DESC', 'DISTINCT'];
+
+        operators.forEach(function(kw) {
+            const regex = new RegExp('\\b(' + kw + ')\\b', 'gi');
+            highlighted = highlighted.replace(regex, '<span class="gb-sql-operator">$1</span>');
+        });
+
+        // Functions
+        const functions = ['COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'DATE', 'NOW', 'CONCAT', 'SUBSTRING', 'TRIM',
+            'UPPER', 'LOWER', 'COALESCE', 'IFNULL', 'IF', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END',
+            'MONTHNAME', 'DAYNAME', 'YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE', 'SECOND',
+            'DATE_FORMAT', 'STR_TO_DATE', 'CURDATE', 'CURTIME', 'DATEDIFF', 'TIMEDIFF',
+            'DATE_ADD', 'DATE_SUB', 'LAST_DAY', 'WEEK', 'WEEKDAY', 'QUARTER',
+            'ROUND', 'FLOOR', 'CEIL', 'ABS', 'MOD', 'RAND', 'LENGTH', 'CHAR_LENGTH',
+            'LEFT', 'RIGHT', 'REPLACE', 'REVERSE', 'LPAD', 'RPAD', 'CAST', 'CONVERT',
+            'GROUP_CONCAT', 'JSON_EXTRACT', 'JSON_OBJECT', 'JSON_ARRAY'];
+
+        functions.forEach(function(fn) {
+            const regex = new RegExp('\\b(' + fn + ')\\s*(?=\\()', 'gi');
+            highlighted = highlighted.replace(regex, '<span class="gb-sql-function">$1</span>');
+        });
+
+        // Restore strings
+        strings.forEach(function(str, i) {
+            highlighted = highlighted.replace('___STR' + i + '___', str);
+        });
+
+        return highlighted;
     }
 
     createApiPanel() {
@@ -346,18 +458,115 @@ class DataSourceEditor extends BaseComponent {
         const sql = this.sqlTextarea.value.trim();
         if (!sql) return;
 
-        // Simple SQL formatting
-        let formatted = sql.replace(/\s+/g, ' ').trim();
-        const keywords = ['SELECT', 'FROM', 'WHERE', 'ORDER BY', 'GROUP BY', 'HAVING', 'LIMIT', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 'ON', 'AND', 'OR'];
-
-        keywords.forEach(kw => {
-            const regex = new RegExp(`\\b${kw}\\b`, 'gi');
-            formatted = formatted.replace(regex, '\n' + kw.toUpperCase());
-        });
-
-        formatted = formatted.replace(/^\n+/, '').replace(/\n{2,}/g, '\n');
+        const formatted = this.formatSQLQuery(sql);
         this.sqlTextarea.value = formatted;
         stateManager.setQuery(formatted);
+        if (this.updateSqlHighlight) this.updateSqlHighlight();
+    }
+
+    /**
+     * PhpMyAdmin-style SQL formatter
+     * Major clause keywords on their own line, content indented below
+     */
+    formatSQLQuery(sql) {
+        // Normalize whitespace to single spaces
+        let formatted = sql.replace(/\s+/g, ' ').trim();
+
+        // Multi-word keywords need protection
+        const multiWordMap = {
+            'LEFT OUTER JOIN': '___LOJ___',
+            'RIGHT OUTER JOIN': '___ROJ___',
+            'FULL OUTER JOIN': '___FOJ___',
+            'LEFT JOIN': '___LJ___',
+            'RIGHT JOIN': '___RJ___',
+            'INNER JOIN': '___IJ___',
+            'OUTER JOIN': '___OJ___',
+            'CROSS JOIN': '___CJ___',
+            'ORDER BY': '___OB___',
+            'GROUP BY': '___GB___',
+            'UNION ALL': '___UA___',
+            'INSERT INTO': '___II___',
+            'DELETE FROM': '___DF___'
+        };
+
+        // Replace multi-word keywords with placeholders (case-insensitive)
+        for (var kw in multiWordMap) {
+            if (multiWordMap.hasOwnProperty(kw)) {
+                var ph = multiWordMap[kw];
+                var regex = new RegExp(kw.replace(/\s+/g, '\\s+'), 'gi');
+                formatted = formatted.replace(regex, ph);
+            }
+        }
+
+        // Block keywords - these get their own line, content on next line indented
+        var blockKeywords = ['SELECT', 'FROM', 'WHERE', '___OB___', '___GB___', 'HAVING', 'LIMIT', 'SET', 'VALUES'];
+
+        // Process block keywords
+        blockKeywords.forEach(function(kw) {
+            var regex = new RegExp('\\b' + kw + '\\b\\s*', 'gi');
+            formatted = formatted.replace(regex, '\n' + kw + '\n    ');
+        });
+
+        // JOIN keywords - new line for JOIN
+        var joinKeywords = ['___LOJ___', '___ROJ___', '___FOJ___', '___LJ___', '___RJ___', '___IJ___', '___OJ___', '___CJ___', 'JOIN'];
+
+        joinKeywords.forEach(function(kw) {
+            var regex = new RegExp('\\b' + kw + '\\b', 'gi');
+            formatted = formatted.replace(regex, '\n' + kw);
+        });
+
+        // Format: JOIN table alias ON\n    (condition)
+        formatted = formatted.replace(/\n(___[A-Z]+___|JOIN)\s+(\S+(?:\s+\S+)?)\s+ON\s*/gi, '\n$1 $2 ON\n    ');
+
+        // Restore multi-word keywords
+        for (var kw2 in multiWordMap) {
+            if (multiWordMap.hasOwnProperty(kw2)) {
+                var ph2 = multiWordMap[kw2];
+                formatted = formatted.split(ph2).join(kw2.toUpperCase());
+            }
+        }
+
+        // Clean up multiple newlines and leading newline
+        formatted = formatted.replace(/^\n+/, '');
+        formatted = formatted.replace(/\n{2,}/g, '\n');
+
+        // Process lines - trim and uppercase keywords
+        var lines = formatted.split('\n');
+        var allKeywords = ['SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'ORDER BY', 'GROUP BY', 'HAVING',
+            'LIMIT', 'OFFSET', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 'OUTER JOIN',
+            'CROSS JOIN', 'LEFT OUTER JOIN', 'RIGHT OUTER JOIN', 'FULL OUTER JOIN', 'ON',
+            'SET', 'VALUES', 'INSERT INTO', 'UPDATE', 'DELETE FROM', 'UNION ALL', 'UNION',
+            'AS', 'IN', 'BETWEEN', 'LIKE', 'IS', 'NULL', 'NOT', 'ASC', 'DESC', 'DISTINCT',
+            'COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'DATE', 'NOW', 'CONCAT', 'SUBSTRING', 'TRIM',
+            'UPPER', 'LOWER', 'COALESCE', 'IFNULL', 'IF', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END',
+            'MONTHNAME', 'DAYNAME', 'YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE', 'SECOND',
+            'DATE_FORMAT', 'STR_TO_DATE', 'CURDATE', 'CURTIME', 'DATEDIFF', 'TIMEDIFF',
+            'DATE_ADD', 'DATE_SUB', 'LAST_DAY', 'WEEK', 'WEEKDAY', 'QUARTER',
+            'ROUND', 'FLOOR', 'CEIL', 'ABS', 'MOD', 'RAND', 'LENGTH', 'CHAR_LENGTH',
+            'LEFT', 'RIGHT', 'REPLACE', 'REVERSE', 'LPAD', 'RPAD', 'CAST', 'CONVERT',
+            'GROUP_CONCAT', 'JSON_EXTRACT', 'JSON_OBJECT', 'JSON_ARRAY'];
+
+        var result = lines.map(function(line) {
+            var trimmed = line.trimEnd();
+            if (!trimmed.trim()) return null;
+
+            // Preserve indentation (4 spaces) but trim otherwise
+            if (trimmed.startsWith('    ')) {
+                trimmed = '    ' + trimmed.substring(4).trim();
+            } else {
+                trimmed = trimmed.trim();
+            }
+
+            // Uppercase SQL keywords
+            allKeywords.forEach(function(kw) {
+                var regex = new RegExp('\\b' + kw + '\\b', 'gi');
+                trimmed = trimmed.replace(regex, kw.toUpperCase());
+            });
+
+            return trimmed;
+        }).filter(function(line) { return line !== null; });
+
+        return result.join('\n');
     }
 
     clearSql() {
@@ -366,6 +575,7 @@ class DataSourceEditor extends BaseComponent {
         stateManager.clearData();
         this.clearStatus();
         this.showSuccess('Cleared. Using demo data.');
+        if (this.updateSqlHighlight) this.updateSqlHighlight();
     }
 
     async executeSql() {
@@ -553,7 +763,10 @@ class DataSourceEditor extends BaseComponent {
 
         switch (config.type) {
             case 'sql':
-                if (this.sqlTextarea) this.sqlTextarea.value = config.query || '';
+                if (this.sqlTextarea) {
+                    this.sqlTextarea.value = config.query || '';
+                    if (this.updateSqlHighlight) this.updateSqlHighlight();
+                }
                 break;
             case 'api':
                 if (this.apiUrlInput) this.apiUrlInput.value = config.apiUrl || '';
@@ -580,6 +793,7 @@ class DataSourceEditor extends BaseComponent {
         const query = stateManager.getQuery();
         if (this.sqlTextarea && query) {
             this.sqlTextarea.value = query;
+            if (this.updateSqlHighlight) this.updateSqlHighlight();
         }
 
         // Restore data source config if available
@@ -634,6 +848,7 @@ class DataSourceEditor extends BaseComponent {
         if (this.sqlTextarea) {
             this.sqlTextarea.value = sql;
             stateManager.setQuery(sql);
+            if (this.updateSqlHighlight) this.updateSqlHighlight();
         }
     }
 

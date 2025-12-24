@@ -284,8 +284,15 @@ class QueryEditor extends BaseComponent {
                 'LIMIT', 'OFFSET', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 'OUTER JOIN',
                 'CROSS JOIN', 'LEFT OUTER JOIN', 'RIGHT OUTER JOIN', 'FULL OUTER JOIN', 'ON',
                 'SET', 'VALUES', 'INSERT INTO', 'UPDATE', 'DELETE FROM', 'UNION ALL', 'UNION',
-                'AS', 'IN', 'BETWEEN', 'LIKE', 'IS', 'NULL', 'NOT', 'ASC', 'DESC', 'COUNT', 'SUM',
-                'AVG', 'MIN', 'MAX', 'DATE', 'DISTINCT'];
+                'AS', 'IN', 'BETWEEN', 'LIKE', 'IS', 'NULL', 'NOT', 'ASC', 'DESC', 'DISTINCT',
+                'COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'DATE', 'NOW', 'CONCAT', 'SUBSTRING', 'TRIM',
+                'UPPER', 'LOWER', 'COALESCE', 'IFNULL', 'IF', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END',
+                'MONTHNAME', 'DAYNAME', 'YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE', 'SECOND',
+                'DATE_FORMAT', 'STR_TO_DATE', 'CURDATE', 'CURTIME', 'DATEDIFF', 'TIMEDIFF',
+                'DATE_ADD', 'DATE_SUB', 'LAST_DAY', 'WEEK', 'WEEKDAY', 'QUARTER',
+                'ROUND', 'FLOOR', 'CEIL', 'ABS', 'MOD', 'RAND', 'LENGTH', 'CHAR_LENGTH',
+                'LEFT', 'RIGHT', 'REPLACE', 'REVERSE', 'LPAD', 'RPAD', 'CAST', 'CONVERT',
+                'GROUP_CONCAT', 'JSON_EXTRACT', 'JSON_OBJECT', 'JSON_ARRAY'];
 
             keywords.forEach(kw => {
                 const regex = new RegExp(`\\b${kw}\\b`, 'gi');
@@ -350,7 +357,13 @@ class QueryEditor extends BaseComponent {
 
         // Functions
         const functions = ['COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'DATE', 'NOW', 'CONCAT', 'SUBSTRING', 'TRIM',
-            'UPPER', 'LOWER', 'COALESCE', 'IFNULL', 'IF', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END'];
+            'UPPER', 'LOWER', 'COALESCE', 'IFNULL', 'IF', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END',
+            'MONTHNAME', 'DAYNAME', 'YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE', 'SECOND',
+            'DATE_FORMAT', 'STR_TO_DATE', 'CURDATE', 'CURTIME', 'DATEDIFF', 'TIMEDIFF',
+            'DATE_ADD', 'DATE_SUB', 'LAST_DAY', 'WEEK', 'WEEKDAY', 'QUARTER',
+            'ROUND', 'FLOOR', 'CEIL', 'ABS', 'MOD', 'RAND', 'LENGTH', 'CHAR_LENGTH',
+            'LEFT', 'RIGHT', 'REPLACE', 'REVERSE', 'LPAD', 'RPAD', 'CAST', 'CONVERT',
+            'GROUP_CONCAT', 'JSON_EXTRACT', 'JSON_OBJECT', 'JSON_ARRAY'];
 
         functions.forEach(fn => {
             const regex = new RegExp(`\\b(${fn})\\s*(?=\\()`, 'gi');
