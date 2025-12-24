@@ -1,12 +1,14 @@
 <?php
-
-declare(strict_types=1);
+/**
+ * Database Connection Class
+ * PHP 5.4 compatible
+ */
 
 class Database
 {
-    private static ?Database $instance = null;
-    private ?PDO $pdo = null;
-    private array $config = [];
+    private static $instance = null;
+    private $pdo = null;
+    private $config = array();
 
     private function __construct()
     {
@@ -14,7 +16,7 @@ class Database
         $this->connect();
     }
 
-    public static function getInstance(): Database
+    public static function getInstance()
     {
         if (self::$instance === null) {
             self::$instance = new self();
@@ -22,14 +24,14 @@ class Database
         return self::$instance;
     }
 
-    public function getConnection(): PDO
+    public function getConnection()
     {
         return $this->pdo;
     }
 
-    private function loadEnv(): void
+    private function loadEnv()
     {
-        $envPath = dirname(__DIR__, 2) . '/.env';
+        $envPath = dirname(dirname(__DIR__)) . '/.env';
 
         if (!file_exists($envPath)) {
             throw new RuntimeException('.env file not found. Copy .env.example to .env and configure.');
@@ -49,22 +51,22 @@ class Database
         }
     }
 
-    private function connect(): void
+    private function connect()
     {
-        $host = $this->config['DB_HOST'] ?? 'localhost';
-        $port = $this->config['DB_PORT'] ?? '3306';
-        $name = $this->config['DB_NAME'] ?? '';
-        $user = $this->config['DB_USER'] ?? '';
-        $pass = $this->config['DB_PASS'] ?? '';
-        $charset = $this->config['DB_CHARSET'] ?? 'utf8mb4';
+        $host = isset($this->config['DB_HOST']) ? $this->config['DB_HOST'] : 'localhost';
+        $port = isset($this->config['DB_PORT']) ? $this->config['DB_PORT'] : '3306';
+        $name = isset($this->config['DB_NAME']) ? $this->config['DB_NAME'] : '';
+        $user = isset($this->config['DB_USER']) ? $this->config['DB_USER'] : '';
+        $pass = isset($this->config['DB_PASS']) ? $this->config['DB_PASS'] : '';
+        $charset = isset($this->config['DB_CHARSET']) ? $this->config['DB_CHARSET'] : 'utf8mb4';
 
         $dsn = "mysql:host={$host};port={$port};dbname={$name};charset={$charset}";
 
-        $options = [
+        $options = array(
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
-        ];
+        );
 
         try {
             $this->pdo = new PDO($dsn, $user, $pass, $options);
@@ -74,6 +76,7 @@ class Database
     }
 
     private function __clone() {}
+
     public function __wakeup()
     {
         throw new RuntimeException('Cannot unserialize singleton');

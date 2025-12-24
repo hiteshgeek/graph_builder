@@ -16,6 +16,7 @@ $editGraphId = isset($_GET['edit']) ? (int) $_GET['edit'] : null;
     <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" disabled>
     <link rel="stylesheet" href="<?= asset('graph-creator.css') ?>">
     <link rel="stylesheet" href="<?= asset('main.css') ?>">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 </head>
 <body>
     <div id="graph-builder"></div>

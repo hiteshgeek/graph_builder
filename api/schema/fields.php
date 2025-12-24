@@ -1,6 +1,8 @@
 <?php
-
-declare(strict_types=1);
+/**
+ * Get Table Fields API
+ * PHP 5.4 compatible
+ */
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -14,26 +16,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
-    echo json_encode(['error' => 'Method not allowed']);
+    echo json_encode(array('error' => 'Method not allowed'));
     exit;
 }
 
-$tableName = $_GET['table'] ?? '';
+$tableName = isset($_GET['table']) ? $_GET['table'] : '';
 
 if (empty($tableName)) {
     http_response_code(400);
-    echo json_encode(['error' => 'Table name is required']);
+    echo json_encode(array('error' => 'Table name is required'));
     exit;
 }
 
 // Validate table name (alphanumeric and underscores only)
 if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $tableName)) {
     http_response_code(400);
-    echo json_encode(['error' => 'Invalid table name']);
+    echo json_encode(array('error' => 'Invalid table name'));
     exit;
 }
 
-require_once dirname(__DIR__) . '/config/database.php';
+require_once dirname(dirname(__FILE__)) . '/config/database.php';
 
 try {
     $db = Database::getInstance();
@@ -48,12 +50,12 @@ try {
     $checkSql = "SELECT COUNT(*) as cnt FROM information_schema.TABLES
                  WHERE TABLE_SCHEMA = :dbName AND TABLE_NAME = :tableName";
     $stmt = $pdo->prepare($checkSql);
-    $stmt->execute(['dbName' => $dbName, 'tableName' => $tableName]);
+    $stmt->execute(array('dbName' => $dbName, 'tableName' => $tableName));
     $exists = $stmt->fetch();
 
     if ($exists['cnt'] == 0) {
         http_response_code(404);
-        echo json_encode(['error' => 'Table not found']);
+        echo json_encode(array('error' => 'Table not found'));
         exit;
     }
 
@@ -72,27 +74,28 @@ try {
             ORDER BY ORDINAL_POSITION";
 
     $stmt = $pdo->prepare($sql);
-    $stmt->execute(['dbName' => $dbName, 'tableName' => $tableName]);
+    $stmt->execute(array('dbName' => $dbName, 'tableName' => $tableName));
     $fields = $stmt->fetchAll();
 
     // Format fields with type icons
-    $formattedFields = array_map(function ($field) {
+    $formattedFields = array();
+    foreach ($fields as $field) {
         $typeCategory = 'text';
         $type = strtolower($field['type']);
 
-        if (in_array($type, ['int', 'bigint', 'smallint', 'tinyint', 'mediumint', 'decimal', 'float', 'double'])) {
+        if (in_array($type, array('int', 'bigint', 'smallint', 'tinyint', 'mediumint', 'decimal', 'float', 'double'))) {
             $typeCategory = 'number';
-        } elseif (in_array($type, ['date', 'datetime', 'timestamp', 'time', 'year'])) {
+        } elseif (in_array($type, array('date', 'datetime', 'timestamp', 'time', 'year'))) {
             $typeCategory = 'date';
-        } elseif (in_array($type, ['text', 'longtext', 'mediumtext', 'tinytext', 'blob', 'longblob'])) {
+        } elseif (in_array($type, array('text', 'longtext', 'mediumtext', 'tinytext', 'blob', 'longblob'))) {
             $typeCategory = 'text';
         } elseif ($type === 'json') {
             $typeCategory = 'json';
-        } elseif (in_array($type, ['enum', 'set'])) {
+        } elseif (in_array($type, array('enum', 'set'))) {
             $typeCategory = 'enum';
         }
 
-        return [
+        $formattedFields[] = array(
             'name' => $field['name'],
             'type' => $field['type'],
             'fullType' => $field['full_type'],
@@ -103,20 +106,20 @@ try {
             'default' => $field['default_value'],
             'comment' => $field['comment'],
             'category' => $typeCategory
-        ];
-    }, $fields);
+        );
+    }
 
-    echo json_encode([
+    echo json_encode(array(
         'success' => true,
         'table' => $tableName,
         'fields' => $formattedFields,
         'count' => count($formattedFields)
-    ]);
+    ));
 
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode([
+    echo json_encode(array(
         'success' => false,
         'error' => $e->getMessage()
-    ]);
+    ));
 }

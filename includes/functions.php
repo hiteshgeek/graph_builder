@@ -11,7 +11,7 @@ function get_base_path()
     $parts = explode('/', trim($scriptDir, '/'));
 
     // Known subdirectory names that are NOT the project root
-    $subDirs = ['api', 'includes', 'usage', 'graphs', 'docs', 'setup'];
+    $subDirs = array('api', 'includes', 'usage', 'graphs', 'docs', 'setup');
 
     // Walk backwards removing subdirectories until we find the project root
     while (!empty($parts) && in_array(end($parts), $subDirs)) {
@@ -24,17 +24,18 @@ function get_base_path()
 
 function asset_manifest($type = 'css')
 {
-      static $manifests = ['css' => null, 'js' => null];
+      static $manifests = array('css' => null, 'js' => null);
       $manifestFile = $type === 'js'
-            ? __DIR__ . '/../dist/rev/manifest-js.json'
-            : __DIR__ . '/../dist/rev/manifest-css.json';
+            ? dirname(__FILE__) . '/../dist/rev/manifest-js.json'
+            : dirname(__FILE__) . '/../dist/rev/manifest-css.json';
       if ($manifests[$type] === null) {
             if (!file_exists($manifestFile)) {
                   error_log("[asset_manifest] Manifest file not found: $manifestFile");
-                  $manifests[$type] = [];
+                  $manifests[$type] = array();
             } else {
                   $json = file_get_contents($manifestFile);
-                  $manifests[$type] = json_decode($json, true) ?: [];
+                  $decoded = json_decode($json, true);
+                  $manifests[$type] = $decoded ? $decoded : array();
             }
       }
 

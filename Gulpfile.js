@@ -79,10 +79,21 @@ function isProduction() {
 function useSourceMaps() {
   return !isProduction(); // Enable sourcemaps in dev, disable in production
 }
+// Detect no-version mode for dev-noversion task
+let noVersionMode = false;
+function useVersioning() {
+  return !noVersionMode;
+}
 
 // Helper to set production env when running the `prod` task so behaviour is deterministic
 function setProdEnv(done) {
   process.env.NODE_ENV = "production";
+  done && done();
+}
+
+// Helper to enable no-version mode for dev-noversion task
+function setNoVersionMode(done) {
+  noVersionMode = true;
   done && done();
 }
 
@@ -108,10 +119,13 @@ function addAllStyles(done) {
       .pipe(sass())
       .pipe(plugins.concat(outName))
       .pipe(isProduction() ? plugins.cleanCss() : noop())
-      .pipe(rev())
+      .pipe(useVersioning() ? rev() : noop())
       .pipe(useSourceMaps() ? plugins.sourcemaps.write(".") : noop())
       .pipe(gulp.dest(config.cssOutDir))
   );
+  if (!useVersioning()) {
+    return require("merge-stream")(...entries);
+  }
   return require("merge-stream")(...entries)
     .pipe(rev.manifest(config.cssManifestPath))
     .pipe(gulp.dest("."));
@@ -119,10 +133,14 @@ function addAllStyles(done) {
 
 // ESM output (for <script type="module">)
 
+// External dependencies (loaded via CDN, not bundled)
+const externalDeps = ["echarts"];
+
 function addAllScriptsESM() {
   const entries = scriptEntries.map(([srcArr, outName]) =>
     rollupStream({
       input: srcArr[0],
+      external: externalDeps,
       plugins: [
         rollupReplace({
           preventAssignment: true,
@@ -151,10 +169,13 @@ function addAllScriptsESM() {
       )
       .pipe(isProduction() ? uglify() : noop())
       .pipe(isProduction() ? javascriptObfuscator() : noop())
-      .pipe(rev())
+      .pipe(useVersioning() ? rev() : noop())
       .pipe(useSourceMaps() ? plugins.sourcemaps.write(".") : noop())
       .pipe(gulp.dest(config.jsOutDir))
   );
+  if (!useVersioning()) {
+    return require("merge-stream")(...entries);
+  }
   return require("merge-stream")(...entries)
     .pipe(rev.manifest(config.jsManifestPath))
     .pipe(gulp.dest("."));
@@ -166,11 +187,17 @@ const iifeNames = {
   "graph-creator.js": "GraphCreator", // Library bundle - expose as global
 };
 
+// Global variable names for external deps in IIFE format
+const externalGlobals = {
+  echarts: "echarts",
+};
+
 function addAllScriptsIIFE() {
   const entries = scriptEntries.map(([srcArr, outName]) => {
     const iifeOutName = outName.replace(/\.js$/, ".iife.js");
     return rollupStream({
       input: srcArr[0],
+      external: externalDeps,
       plugins: [
         rollupReplace({
           preventAssignment: true,
@@ -189,6 +216,7 @@ function addAllScriptsIIFE() {
       output: {
         format: "iife",
         name: iifeNames[outName] || undefined,
+        globals: externalGlobals,
         exports: "named",
         inlineDynamicImports: true,
       },
@@ -201,10 +229,13 @@ function addAllScriptsIIFE() {
       )
       .pipe(isProduction() ? uglify() : noop())
       .pipe(isProduction() ? javascriptObfuscator() : noop())
-      .pipe(rev())
+      .pipe(useVersioning() ? rev() : noop())
       .pipe(useSourceMaps() ? plugins.sourcemaps.write(".") : noop())
       .pipe(gulp.dest(config.jsOutDir));
   });
+  if (!useVersioning()) {
+    return require("merge-stream")(...entries);
+  }
   return require("merge-stream")(...entries)
     .pipe(rev.manifest(config.jsManifestPath, { merge: true }))
     .pipe(gulp.dest("."));
@@ -285,6 +316,12 @@ gulp.task(
 gulp.task(
   "prod",
   gulp.series(setProdEnv, "clean", "styles-clean", "scripts-clean", "images")
+);
+
+// Dev task without versioning (no hash in filenames, no manifest)
+gulp.task(
+  "dev-noversion",
+  gulp.series(setNoVersionMode, "clean", "styles", "scripts", "images")
 );
 
 gulp.task("default", gulp.series("dev"));

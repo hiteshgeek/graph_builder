@@ -1,10 +1,12 @@
 <?php
-
-declare(strict_types=1);
+/**
+ * Query Validator Class
+ * PHP 5.4 compatible
+ */
 
 class QueryValidator
 {
-    private static array $blockedKeywords = [
+    private static $blockedKeywords = array(
         'DROP',
         'DELETE',
         'TRUNCATE',
@@ -20,26 +22,26 @@ class QueryValidator
         'CALL',
         'EXECUTE',
         'EXEC',
-    ];
+    );
 
-    private static array $blockedPatterns = [
+    private static $blockedPatterns = array(
         '/;\s*\w/i',
         '/UNION\s+ALL\s+SELECT/i',
         '/INTO\s+OUTFILE/i',
         '/INTO\s+DUMPFILE/i',
         '/BENCHMARK\s*\(/i',
         '/SLEEP\s*\(/i',
-    ];
+    );
 
-    public static function validate(string $sql): array
+    public static function validate($sql)
     {
-        $errors = [];
-        $warnings = [];
+        $errors = array();
+        $warnings = array();
         $sql = trim($sql);
 
         if (empty($sql)) {
             $errors[] = 'Query cannot be empty';
-            return ['valid' => false, 'errors' => $errors, 'warnings' => $warnings];
+            return array('valid' => false, 'errors' => $errors, 'warnings' => $warnings);
         }
 
         if (!self::isSelectQuery($sql)) {
@@ -67,21 +69,21 @@ class QueryValidator
             $warnings[] = 'Consider adding LIMIT to prevent large result sets';
         }
 
-        return [
+        return array(
             'valid' => empty($errors),
             'errors' => $errors,
             'warnings' => $warnings
-        ];
+        );
     }
 
-    public static function isSelectQuery(string $sql): bool
+    public static function isSelectQuery($sql)
     {
         $sql = trim($sql);
         $sql = preg_replace('/^\s*\(/', '', $sql);
         return preg_match('/^\s*SELECT\b/i', $sql) === 1;
     }
 
-    public static function sanitize(string $sql): string
+    public static function sanitize($sql)
     {
         $sql = trim($sql);
         $sql = rtrim($sql, ';');

@@ -1,6 +1,8 @@
 <?php
-
-declare(strict_types=1);
+/**
+ * Execute SQL Query API
+ * PHP 5.4 compatible
+ */
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -12,19 +14,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/validate.php';
+require_once dirname(__FILE__) . '/../config/database.php';
+require_once dirname(__FILE__) . '/validate.php';
 
-function sendResponse(array $data, int $code = 200): void
+function sendResponse($data, $code = 200)
 {
     http_response_code($code);
     echo json_encode($data);
     exit;
 }
 
-function sendError(string $message, int $code = 400): void
+function sendError($message, $code = 400)
 {
-    sendResponse(['success' => false, 'error' => $message], $code);
+    sendResponse(array('success' => false, 'error' => $message), $code);
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -37,7 +39,7 @@ if (json_last_error() !== JSON_ERROR_NONE) {
     sendError('Invalid JSON input');
 }
 
-$sql = $input['sql'] ?? '';
+$sql = isset($input['sql']) ? $input['sql'] : '';
 
 if (empty($sql)) {
     sendError('SQL query is required');
@@ -46,11 +48,11 @@ if (empty($sql)) {
 $validation = QueryValidator::validate($sql);
 
 if (!$validation['valid']) {
-    sendResponse([
+    sendResponse(array(
         'success' => false,
         'errors' => $validation['errors'],
         'warnings' => $validation['warnings']
-    ], 400);
+    ), 400);
 }
 
 $sql = QueryValidator::sanitize($sql);
@@ -63,7 +65,7 @@ try {
     $stmt->execute();
 
     $data = $stmt->fetchAll();
-    $columns = [];
+    $columns = array();
 
     if (!empty($data)) {
         $columns = array_keys($data[0]);
@@ -74,13 +76,13 @@ try {
         }
     }
 
-    sendResponse([
+    sendResponse(array(
         'success' => true,
         'data' => $data,
         'columns' => $columns,
         'rowCount' => count($data),
         'warnings' => $validation['warnings']
-    ]);
+    ));
 
 } catch (PDOException $e) {
     sendError('Query execution failed: ' . $e->getMessage(), 500);
