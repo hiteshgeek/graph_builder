@@ -54,6 +54,115 @@
   @include flex-center;
 }
 
+// Header dropdown component
+.gb-header-dropdown {
+  position: relative;
+}
+
+.gb-header-dropdown-toggle {
+  @include button-reset;
+  @include flex-center;
+  gap: var(--gb-spacing-xs);
+  padding: var(--gb-spacing-xs) var(--gb-spacing-sm);
+  font-size: var(--gb-font-size-sm);
+  font-weight: 500;
+  color: var(--gb-text-secondary);
+  border-radius: var(--gb-radius-md);
+  @include transition-fast;
+
+  svg:first-child {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    color: var(--gb-text-primary);
+    background: var(--gb-bg-hover);
+  }
+
+  .gb-header-dropdown--open & {
+    color: var(--gb-text-primary);
+    background: var(--gb-bg-hover);
+  }
+}
+
+.gb-header-dropdown-label {
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.gb-header-dropdown-arrow {
+  @include transition-fast;
+  opacity: 0.6;
+
+  .gb-header-dropdown--open & {
+    transform: rotate(180deg);
+  }
+}
+
+.gb-header-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 180px;
+  background: var(--gb-bg-secondary);
+  border: 1px solid var(--gb-border-color);
+  border-radius: var(--gb-radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  @include transition-fast;
+  z-index: 100;
+
+  .gb-header-dropdown--open & {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+.gb-header-dropdown-item {
+  @include button-reset;
+  display: flex;
+  align-items: center;
+  gap: var(--gb-spacing-sm);
+  width: 100%;
+  padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+  font-size: var(--gb-font-size-sm);
+  color: var(--gb-text-primary);
+  text-decoration: none;
+  @include transition-fast;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    color: var(--gb-text-muted);
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: var(--gb-bg-hover);
+
+    svg {
+      color: var(--gb-primary);
+    }
+  }
+
+  &:first-child {
+    border-radius: var(--gb-radius-md) var(--gb-radius-md) 0 0;
+  }
+
+  &:last-child {
+    border-radius: 0 0 var(--gb-radius-md) var(--gb-radius-md);
+  }
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--gb-border-color-light);
+  }
+}
+
 // Main layout - 2 column (tabbed sidebar + preview)
 .gb-main {
   display: flex;

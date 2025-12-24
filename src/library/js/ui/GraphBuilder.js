@@ -72,57 +72,73 @@ class GraphBuilder extends BaseComponent {
         this.themeSwitcherContainer = this.createElement('div', { className: 'gb-header-theme' });
         actions.appendChild(this.themeSwitcherContainer);
 
-        // Save button
-        const saveBtn = this.createElement('button', {
-            className: 'gb-header-save-btn',
-            type: 'button',
-            title: 'Save graph configuration'
+        // Graphs dropdown (Save + Saved)
+        const graphsDropdown = this.createHeaderDropdown({
+            icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                <polyline points="17,21 17,13 7,13 7,21"/>
+                <polyline points="7,3 7,8 15,8"/>
+            </svg>`,
+            label: 'Graphs',
+            items: [
+                {
+                    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                        <polyline points="17,21 17,13 7,13 7,21"/>
+                        <polyline points="7,3 7,8 15,8"/>
+                    </svg>`,
+                    label: 'Save Graph',
+                    action: () => this.showSaveDialog()
+                },
+                {
+                    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <rect x="3" y="3" width="7" height="7"/>
+                        <rect x="14" y="3" width="7" height="7"/>
+                        <rect x="3" y="14" width="7" height="7"/>
+                        <rect x="14" y="14" width="7" height="7"/>
+                    </svg>`,
+                    label: 'Saved Graphs',
+                    href: 'graphs/'
+                }
+            ]
         });
-        saveBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
-            <polyline points="17,21 17,13 7,13 7,21"/>
-            <polyline points="7,3 7,8 15,8"/>
-        </svg>
-        Save`;
-        this.bindEvent(saveBtn, 'click', () => this.showSaveDialog());
-        actions.appendChild(saveBtn);
+        actions.appendChild(graphsDropdown);
 
-        // Saved graphs link
-        const graphsLink = this.createElement('a', {
-            className: 'gb-header-link',
-            href: 'graphs/'
+        // Menu dropdown (Usage, Docs, Setup)
+        const menuDropdown = this.createHeaderDropdown({
+            icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <circle cx="12" cy="12" r="1"/>
+                <circle cx="19" cy="12" r="1"/>
+                <circle cx="5" cy="12" r="1"/>
+            </svg>`,
+            label: 'Menu',
+            items: [
+                {
+                    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>`,
+                    label: 'Usage Examples',
+                    href: 'usage/'
+                },
+                {
+                    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                        <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+                    </svg>`,
+                    label: 'Documentation',
+                    href: 'docs/'
+                },
+                {
+                    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+                    </svg>`,
+                    label: 'Setup',
+                    href: 'setup/'
+                }
+            ]
         });
-        graphsLink.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-            <rect x="3" y="3" width="7" height="7"/>
-            <rect x="14" y="3" width="7" height="7"/>
-            <rect x="3" y="14" width="7" height="7"/>
-            <rect x="14" y="14" width="7" height="7"/>
-        </svg>
-        Saved`;
-        actions.appendChild(graphsLink);
-
-        // Usage link (after theme switcher, like in usage page)
-        const usageLink = this.createElement('a', {
-            className: 'gb-header-link',
-            href: 'usage/'
-        });
-        usageLink.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-            <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-        </svg>
-        Usage Examples`;
-        actions.appendChild(usageLink);
-
-        // Docs link
-        const docsLink = this.createElement('a', {
-            className: 'gb-header-link',
-            href: 'docs/'
-        });
-        docsLink.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-            <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
-        </svg>
-        Docs`;
-        actions.appendChild(docsLink);
+        actions.appendChild(menuDropdown);
 
         header.appendChild(titleSection);
         header.appendChild(actions);
@@ -396,6 +412,65 @@ class GraphBuilder extends BaseComponent {
             </svg>`
         };
         return icons[iconName] || '';
+    }
+
+    createHeaderDropdown({ icon, label, items }) {
+        const dropdown = this.createElement('div', { className: 'gb-header-dropdown' });
+
+        // Toggle button
+        const toggle = this.createElement('button', {
+            className: 'gb-header-dropdown-toggle',
+            type: 'button'
+        });
+        toggle.innerHTML = `${icon}<span class="gb-header-dropdown-label">${label}</span>
+            <svg class="gb-header-dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <path d="M6 9l6 6 6-6"/>
+            </svg>`;
+
+        // Menu
+        const menu = this.createElement('div', { className: 'gb-header-dropdown-menu' });
+
+        items.forEach(item => {
+            if (item.href) {
+                const link = this.createElement('a', {
+                    className: 'gb-header-dropdown-item',
+                    href: item.href
+                });
+                link.innerHTML = `${item.icon}<span>${item.label}</span>`;
+                menu.appendChild(link);
+            } else if (item.action) {
+                const btn = this.createElement('button', {
+                    className: 'gb-header-dropdown-item',
+                    type: 'button'
+                });
+                btn.innerHTML = `${item.icon}<span>${item.label}</span>`;
+                this.bindEvent(btn, 'click', () => {
+                    dropdown.classList.remove('gb-header-dropdown--open');
+                    item.action();
+                });
+                menu.appendChild(btn);
+            }
+        });
+
+        dropdown.appendChild(toggle);
+        dropdown.appendChild(menu);
+
+        // Toggle dropdown
+        this.bindEvent(toggle, 'click', (e) => {
+            e.stopPropagation();
+            // Close other dropdowns
+            document.querySelectorAll('.gb-header-dropdown--open').forEach(d => {
+                if (d !== dropdown) d.classList.remove('gb-header-dropdown--open');
+            });
+            dropdown.classList.toggle('gb-header-dropdown--open');
+        });
+
+        // Close on outside click
+        this.bindEvent(document, 'click', () => {
+            dropdown.classList.remove('gb-header-dropdown--open');
+        });
+
+        return dropdown;
     }
 
     switchTab(tabId) {
