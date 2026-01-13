@@ -13,8 +13,8 @@ import { ThemeSwitcher } from './ThemeSwitcher.js';
 import { SaveGraphDialog } from './SaveGraphDialog.js';
 import { debounce } from '../utils/helpers.js';
 
-// Sidebar tab definitions
-const SIDEBAR_TABS = [
+// Main panel tab definitions (for right side)
+const MAIN_TABS = [
     { id: 'config', label: 'Config', icon: 'settings' },
     { id: 'data', label: 'Data', icon: 'database' },
     { id: 'mapping', label: 'Mapping', icon: 'link' }
@@ -22,6 +22,7 @@ const SIDEBAR_TABS = [
 
 /**
  * GraphBuilder - Main orchestrator component
+ * Layout: Left sidebar (Data Explorer) | Main area (Tabs + Graph Preview)
  */
 class GraphBuilder extends BaseComponent {
     constructor(container, options = {}) {
@@ -37,6 +38,8 @@ class GraphBuilder extends BaseComponent {
         this.saveDialog = null;
         this.queryResults = null;
         this.activeTab = 'config';
+        this.leftSidebarCollapsed = false;
+        this.previewCollapsed = false;
     }
 
     init() {
@@ -44,6 +47,7 @@ class GraphBuilder extends BaseComponent {
         this.initComponents();
         this.setupResizeHandler();
         this.restoreActiveTab();
+        this.restoreCollapsedStates();
         this.initialized = true;
 
         // Check if editing a saved graph
@@ -143,27 +147,68 @@ class GraphBuilder extends BaseComponent {
         header.appendChild(titleSection);
         header.appendChild(actions);
 
-        // Main content - 2 column layout (tabbed sidebar + preview)
-        const main = this.createElement('div', { className: 'gb-main' });
+        // Main content - 3 column layout (left sidebar + tabbed center + preview)
+        const main = this.createElement('div', { className: 'gb-main gb-main--three-column' });
 
-        // Left sidebar with tabs
-        const sidebar = this.createElement('aside', { className: 'gb-sidebar' });
+        // ========================================
+        // LEFT SIDEBAR - Data Explorer (collapsible)
+        // ========================================
+        this.leftSidebar = this.createElement('aside', { className: 'gb-left-sidebar' });
+
+        // Left sidebar header with collapse toggle
+        const leftSidebarHeader = this.createElement('div', { className: 'gb-left-sidebar-header' });
+        const leftSidebarTitle = this.createElement('div', { className: 'gb-left-sidebar-title' });
+        leftSidebarTitle.innerHTML = `${this.getDbIcon()}<span>Database Explorer</span>`;
+
+        this.leftSidebarCollapseBtn = this.createElement('button', {
+            className: 'gb-collapse-btn',
+            type: 'button',
+            title: 'Collapse sidebar'
+        });
+        this.leftSidebarCollapseBtn.innerHTML = this.getCollapseIcon();
+        this.bindEvent(this.leftSidebarCollapseBtn, 'click', () => this.toggleLeftSidebar());
+
+        leftSidebarHeader.appendChild(leftSidebarTitle);
+        leftSidebarHeader.appendChild(this.leftSidebarCollapseBtn);
+
+        // Left sidebar content
+        const leftSidebarContent = this.createElement('div', { className: 'gb-left-sidebar-content' });
+
+        // Data Explorer container
+        this.dataExplorerContainer = this.createElement('div', { className: 'gb-data-explorer-wrapper' });
+
+        // Data Importer container (for CSV import button)
+        this.dataImporterContainer = this.createElement('div', { className: 'gb-data-importer-wrapper' });
+
+        leftSidebarContent.appendChild(this.dataExplorerContainer);
+        leftSidebarContent.appendChild(this.dataImporterContainer);
+
+        this.leftSidebar.appendChild(leftSidebarHeader);
+        this.leftSidebar.appendChild(leftSidebarContent);
+
+        // Left sidebar resizer
+        const leftSidebarResizer = this.createElement('div', { className: 'gb-left-sidebar-resizer' });
+
+        // ========================================
+        // CENTER - Tabbed panels (Config, Data, Mapping)
+        // ========================================
+        const centerPanel = this.createElement('div', { className: 'gb-center-panel' });
 
         // Tab navigation
-        this.tabNav = this.createElement('div', { className: 'gb-sidebar-tabs' });
+        this.tabNav = this.createElement('div', { className: 'gb-center-tabs' });
         this.tabButtons = {};
 
-        SIDEBAR_TABS.forEach(tab => {
+        MAIN_TABS.forEach(tab => {
             const btn = this.createElement('button', {
-                className: `gb-sidebar-tab${tab.id === this.activeTab ? ' gb-sidebar-tab--active' : ''}`,
+                className: `gb-center-tab${tab.id === this.activeTab ? ' gb-center-tab--active' : ''}`,
                 type: 'button',
                 'data-tab': tab.id
             });
 
-            const icon = this.createElement('span', { className: 'gb-sidebar-tab-icon' });
+            const icon = this.createElement('span', { className: 'gb-center-tab-icon' });
             icon.innerHTML = this.getTabIcon(tab.icon);
 
-            const label = this.createElement('span', { className: 'gb-sidebar-tab-label' }, tab.label);
+            const label = this.createElement('span', { className: 'gb-center-tab-label' }, tab.label);
 
             btn.appendChild(icon);
             btn.appendChild(label);
@@ -174,96 +219,182 @@ class GraphBuilder extends BaseComponent {
             this.tabNav.appendChild(btn);
         });
 
-        sidebar.appendChild(this.tabNav);
+        centerPanel.appendChild(this.tabNav);
 
         // Tab content panels
         this.tabPanels = {};
 
         // Config tab panel
         this.tabPanels.config = this.createElement('div', {
-            className: 'gb-sidebar-panel gb-sidebar-panel--config',
+            className: 'gb-center-panel-content gb-center-panel-content--config',
             'data-panel': 'config'
         });
         this.configContainer = this.createElement('div', { className: 'gb-config-wrapper' });
         this.tabPanels.config.appendChild(this.configContainer);
 
-        // Data tab panel (table selection + query)
+        // Data tab panel (SQL query + results)
         this.tabPanels.data = this.createElement('div', {
-            className: 'gb-sidebar-panel gb-sidebar-panel--data',
+            className: 'gb-center-panel-content gb-center-panel-content--data',
             'data-panel': 'data'
         });
 
-        // Data Explorer collapsible section
-        this.dataExplorerContainer = this.createElement('div', { className: 'gb-data-explorer-wrapper' });
-        this.dataImporterContainer = this.createElement('div', { className: 'gb-data-importer-wrapper' });
-        this.dataExplorerSection = this.createCollapsibleSection('explorer', 'Database Explorer', this.dataExplorerContainer, this.getDbIcon(), this.dataImporterContainer);
-
-        // Data Source Editor collapsible section
+        // Data Source Editor section
         this.queryContainer = this.createElement('div', { className: 'gb-query-wrapper' });
-        this.dataSourceSection = this.createCollapsibleSection('datasource', 'Data Source', this.queryContainer, this.getQueryIcon());
+        this.dataSourceSection = this.createCollapsibleSection('datasource', 'SQL Query', this.queryContainer, this.getQueryIcon());
 
-        // Query Results collapsible section
+        // Query Results section
         this.queryResultsContainer = this.createElement('div', { className: 'gb-query-results-wrapper' });
         this.queryResultsSection = this.createCollapsibleSection('results', 'Query Results', this.queryResultsContainer, this.getResultsIcon());
 
-        // Resizers (created after all sections so references exist)
-        const dataResizer = this.createElement('div', { className: 'gb-data-resizer' });
+        // Resizer between query and results
         const queryResultsResizer = this.createElement('div', { className: 'gb-data-resizer gb-query-results-resizer' });
 
-        // Append all elements to data panel
-        this.tabPanels.data.appendChild(this.dataExplorerSection);
-        this.tabPanels.data.appendChild(dataResizer);
         this.tabPanels.data.appendChild(this.dataSourceSection);
         this.tabPanels.data.appendChild(queryResultsResizer);
         this.tabPanels.data.appendChild(this.queryResultsSection);
 
-        // Initialize resizers after elements are in DOM
-        this.initDataResizer(dataResizer);
         this.initQueryResultsResizer(queryResultsResizer);
 
         // Mapping tab panel
         this.tabPanels.mapping = this.createElement('div', {
-            className: 'gb-sidebar-panel gb-sidebar-panel--mapping',
+            className: 'gb-center-panel-content gb-center-panel-content--mapping',
             'data-panel': 'mapping'
         });
         this.dataMappingContainer = this.createElement('div', { className: 'gb-data-mapping-wrapper' });
         this.tabPanels.mapping.appendChild(this.dataMappingContainer);
 
-        // Add panels to sidebar
+        // Add panels to center
         Object.values(this.tabPanels).forEach(panel => {
-            sidebar.appendChild(panel);
+            centerPanel.appendChild(panel);
         });
 
         // Show active tab
         this.updateTabVisibility();
 
-        // Resizer between sidebar and content
-        const sidebarResizer = this.createElement('div', { className: 'gb-sidebar-resizer' });
-        this.sidebar = sidebar;
-        this.initSidebarResizer(sidebarResizer);
+        // ========================================
+        // RIGHT - Graph Preview (collapsible)
+        // ========================================
+        this.previewSection = this.createElement('div', { className: 'gb-preview-section' });
 
-        // Right column (preview)
-        const content = this.createElement('div', { className: 'gb-content' });
+        // Preview header with collapse toggle
+        const previewHeader = this.createElement('div', { className: 'gb-preview-header' });
+        const previewTitle = this.createElement('div', { className: 'gb-preview-title' });
+        previewTitle.innerHTML = `${this.getChartIcon()}<span>Graph Preview</span>`;
+
+        this.previewCollapseBtn = this.createElement('button', {
+            className: 'gb-collapse-btn',
+            type: 'button',
+            title: 'Collapse preview'
+        });
+        this.previewCollapseBtn.innerHTML = this.getCollapseIcon('right');
+        this.bindEvent(this.previewCollapseBtn, 'click', () => this.togglePreview());
+
+        previewHeader.appendChild(previewTitle);
+        previewHeader.appendChild(this.previewCollapseBtn);
+
+        // Preview content
         this.previewContainer = this.createElement('div', { className: 'gb-preview-wrapper' });
-        content.appendChild(this.previewContainer);
 
-        main.appendChild(sidebar);
-        main.appendChild(sidebarResizer);
-        main.appendChild(content);
+        this.previewSection.appendChild(previewHeader);
+        this.previewSection.appendChild(this.previewContainer);
+
+        // Preview resizer
+        const previewResizer = this.createElement('div', { className: 'gb-preview-resizer' });
+
+        // Expand button for left sidebar (shown when collapsed)
+        this.leftExpandBtn = this.createElement('button', {
+            className: 'gb-expand-btn gb-expand-btn--left',
+            type: 'button',
+            title: 'Show Database Explorer'
+        });
+        this.leftExpandBtn.innerHTML = `${this.getDbIcon()}`;
+        this.bindEvent(this.leftExpandBtn, 'click', () => this.toggleLeftSidebar());
+
+        // Expand button for preview (shown when collapsed)
+        this.previewExpandBtn = this.createElement('button', {
+            className: 'gb-expand-btn gb-expand-btn--right',
+            type: 'button',
+            title: 'Show Graph Preview'
+        });
+        this.previewExpandBtn.innerHTML = `${this.getChartIcon()}`;
+        this.bindEvent(this.previewExpandBtn, 'click', () => this.togglePreview());
+
+        // Assemble main layout
+        main.appendChild(this.leftExpandBtn);
+        main.appendChild(this.leftSidebar);
+        main.appendChild(leftSidebarResizer);
+        main.appendChild(centerPanel);
+        main.appendChild(previewResizer);
+        main.appendChild(this.previewSection);
+        main.appendChild(this.previewExpandBtn);
 
         this.element.appendChild(header);
         this.element.appendChild(main);
 
         this.container.appendChild(this.element);
+
+        // Initialize resizers
+        this.initLeftSidebarResizer(leftSidebarResizer);
+        this.initPreviewResizer(previewResizer);
+    }
+
+    /**
+     * Toggle left sidebar collapse
+     */
+    toggleLeftSidebar() {
+        this.leftSidebarCollapsed = !this.leftSidebarCollapsed;
+        this.leftSidebar.classList.toggle('gb-left-sidebar--collapsed', this.leftSidebarCollapsed);
+        this.leftExpandBtn.classList.toggle('gb-expand-btn--visible', this.leftSidebarCollapsed);
+        this.leftSidebarCollapseBtn.innerHTML = this.leftSidebarCollapsed ? this.getExpandIcon() : this.getCollapseIcon();
+        this.leftSidebarCollapseBtn.title = this.leftSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar';
+        this.saveCollapsedState('leftSidebar', this.leftSidebarCollapsed);
+
+        // Trigger preview resize
+        setTimeout(() => {
+            if (this.previewPanel) this.previewPanel.resize();
+        }, 300);
+    }
+
+    /**
+     * Toggle preview collapse
+     */
+    togglePreview() {
+        this.previewCollapsed = !this.previewCollapsed;
+        this.previewSection.classList.toggle('gb-preview-section--collapsed', this.previewCollapsed);
+        this.previewExpandBtn.classList.toggle('gb-expand-btn--visible', this.previewCollapsed);
+        this.previewCollapseBtn.innerHTML = this.previewCollapsed ? this.getExpandIcon('right') : this.getCollapseIcon('right');
+        this.previewCollapseBtn.title = this.previewCollapsed ? 'Expand preview' : 'Collapse preview';
+        this.saveCollapsedState('preview', this.previewCollapsed);
+
+        // Trigger preview resize
+        setTimeout(() => {
+            if (this.previewPanel) this.previewPanel.resize();
+        }, 300);
+    }
+
+    /**
+     * Restore collapsed states from localStorage
+     */
+    restoreCollapsedStates() {
+        if (this.isCollapsed('leftSidebar')) {
+            this.leftSidebarCollapsed = true;
+            this.leftSidebar.classList.add('gb-left-sidebar--collapsed');
+            this.leftExpandBtn.classList.add('gb-expand-btn--visible');
+            this.leftSidebarCollapseBtn.innerHTML = this.getExpandIcon();
+            this.leftSidebarCollapseBtn.title = 'Expand sidebar';
+        }
+
+        if (this.isCollapsed('preview')) {
+            this.previewCollapsed = true;
+            this.previewSection.classList.add('gb-preview-section--collapsed');
+            this.previewExpandBtn.classList.add('gb-expand-btn--visible');
+            this.previewCollapseBtn.innerHTML = this.getExpandIcon('right');
+            this.previewCollapseBtn.title = 'Expand preview';
+        }
     }
 
     /**
      * Create a collapsible section with header and content
-     * @param {string} id - Unique section identifier
-     * @param {string} title - Section title
-     * @param {HTMLElement} contentElement - Content to show/hide
-     * @param {string} iconHtml - Optional icon HTML
-     * @param {HTMLElement} actionsElement - Optional actions element for header right side
      */
     createCollapsibleSection(id, title, contentElement, iconHtml = '', actionsElement = null) {
         const section = this.createElement('div', {
@@ -276,7 +407,7 @@ class GraphBuilder extends BaseComponent {
 
         const headerLeft = this.createElement('div', { className: 'gb-collapsible-header-left' });
 
-        // Chevron icon (points down when expanded, rotates to point right when collapsed)
+        // Chevron icon
         const chevronIcon = this.createElement('span', { className: 'gb-collapsible-header-icon' });
         chevronIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="6 9 12 15 18 9"/>
@@ -296,12 +427,11 @@ class GraphBuilder extends BaseComponent {
 
         header.appendChild(headerLeft);
 
-        // Actions element (optional - placed on right side of header)
+        // Actions element (optional)
         if (actionsElement) {
             const headerActions = this.createElement('div', { className: 'gb-collapsible-header-actions' });
             headerActions.appendChild(actionsElement);
             header.appendChild(headerActions);
-            // Prevent actions from triggering collapse
             this.bindEvent(headerActions, 'click', (e) => e.stopPropagation());
         }
 
@@ -355,8 +485,6 @@ class GraphBuilder extends BaseComponent {
 
     /**
      * Expand a section if it's collapsed (for resizer interaction)
-     * @param {HTMLElement} sectionElement - The collapsible section element
-     * @param {string} sectionId - The section ID for state persistence
      */
     expandSectionForResize(sectionElement, sectionId) {
         if (sectionElement && sectionElement.classList.contains('gb-collapsible-section--collapsed')) {
@@ -365,33 +493,55 @@ class GraphBuilder extends BaseComponent {
         }
     }
 
-    /**
-     * Get database icon SVG
-     */
+    // Icons
     getDbIcon() {
-        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
             <ellipse cx="12" cy="5" rx="9" ry="3"/>
             <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
             <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
         </svg>`;
     }
 
-    /**
-     * Get query icon SVG
-     */
     getQueryIcon() {
         return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
             <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
         </svg>`;
     }
 
-    /**
-     * Get results icon SVG
-     */
     getResultsIcon() {
         return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
             <rect x="3" y="3" width="18" height="18" rx="2"/>
             <path d="M3 9h18M9 21V9"/>
+        </svg>`;
+    }
+
+    getChartIcon() {
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>`;
+    }
+
+    getCollapseIcon(direction = 'left') {
+        if (direction === 'right') {
+            return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <polyline points="9 18 15 12 9 6"/>
+            </svg>`;
+        }
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <polyline points="15 18 9 12 15 6"/>
+        </svg>`;
+    }
+
+    getExpandIcon(direction = 'left') {
+        if (direction === 'right') {
+            return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>`;
+        }
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <polyline points="9 18 15 12 9 6"/>
         </svg>`;
     }
 
@@ -417,7 +567,6 @@ class GraphBuilder extends BaseComponent {
     createHeaderDropdown({ icon, label, items }) {
         const dropdown = this.createElement('div', { className: 'gb-header-dropdown' });
 
-        // Toggle button
         const toggle = this.createElement('button', {
             className: 'gb-header-dropdown-toggle',
             type: 'button'
@@ -427,7 +576,6 @@ class GraphBuilder extends BaseComponent {
                 <path d="M6 9l6 6 6-6"/>
             </svg>`;
 
-        // Menu
         const menu = this.createElement('div', { className: 'gb-header-dropdown-menu' });
 
         items.forEach(item => {
@@ -455,17 +603,14 @@ class GraphBuilder extends BaseComponent {
         dropdown.appendChild(toggle);
         dropdown.appendChild(menu);
 
-        // Toggle dropdown
         this.bindEvent(toggle, 'click', (e) => {
             e.stopPropagation();
-            // Close other dropdowns
             document.querySelectorAll('.gb-header-dropdown--open').forEach(d => {
                 if (d !== dropdown) d.classList.remove('gb-header-dropdown--open');
             });
             dropdown.classList.toggle('gb-header-dropdown--open');
         });
 
-        // Close on outside click
         this.bindEvent(document, 'click', () => {
             dropdown.classList.remove('gb-header-dropdown--open');
         });
@@ -482,14 +627,12 @@ class GraphBuilder extends BaseComponent {
     }
 
     updateTabVisibility() {
-        // Update tab buttons
         Object.entries(this.tabButtons).forEach(([id, btn]) => {
-            btn.classList.toggle('gb-sidebar-tab--active', id === this.activeTab);
+            btn.classList.toggle('gb-center-tab--active', id === this.activeTab);
         });
 
-        // Update panels
         Object.entries(this.tabPanels).forEach(([id, panel]) => {
-            panel.classList.toggle('gb-sidebar-panel--active', id === this.activeTab);
+            panel.classList.toggle('gb-center-panel-content--active', id === this.activeTab);
         });
     }
 
@@ -504,7 +647,7 @@ class GraphBuilder extends BaseComponent {
     restoreActiveTab() {
         try {
             const saved = localStorage.getItem('graphBuilder_activeTab');
-            if (saved && SIDEBAR_TABS.some(t => t.id === saved)) {
+            if (saved && MAIN_TABS.some(t => t.id === saved)) {
                 this.activeTab = saved;
                 this.updateTabVisibility();
             }
@@ -514,7 +657,7 @@ class GraphBuilder extends BaseComponent {
     }
 
     initComponents() {
-        // Theme switcher (init first to apply theme)
+        // Theme switcher
         this.themeSwitcher = new ThemeSwitcher(this.themeSwitcherContainer);
         this.themeSwitcher.init();
 
@@ -522,7 +665,7 @@ class GraphBuilder extends BaseComponent {
         this.typeSwitcher = new TypeSwitcher(this.typeSwitcherContainer);
         this.typeSwitcher.init();
 
-        // Data source editor (SQL, API, Callback, Static)
+        // Data source editor (SQL only)
         this.dataSourceEditor = new DataSourceEditor(this.queryContainer, {
             apiBase: this.options.apiBase || ''
         });
@@ -536,7 +679,6 @@ class GraphBuilder extends BaseComponent {
         this.dataExplorer = new DataExplorer(this.dataExplorerContainer, {
             apiBase: this.options.apiBase || '',
             onFieldClick: (fieldName, tableName) => {
-                // Insert field name into query (only works for SQL mode)
                 if (this.dataSourceEditor && this.dataSourceEditor.sqlTextarea) {
                     const textarea = this.dataSourceEditor.sqlTextarea;
                     const start = textarea.selectionStart;
@@ -561,7 +703,7 @@ class GraphBuilder extends BaseComponent {
         this.queryResults = new QueryResults(this.queryResultsContainer);
         this.queryResults.init();
 
-        // Data mapping (column selection for chart axes)
+        // Data mapping
         this.dataMapping = new DataMapping(this.dataMappingContainer);
         this.dataMapping.init();
 
@@ -573,24 +715,17 @@ class GraphBuilder extends BaseComponent {
         this.previewPanel = new PreviewPanel(this.previewContainer);
         this.previewPanel.init();
 
-        // Save dialog (appended to body for proper modal positioning)
+        // Save dialog
         this.saveDialog = new SaveGraphDialog(document.body);
         this.saveDialog.init();
     }
 
-    /**
-     * Show the save graph dialog
-     */
     showSaveDialog() {
         if (this.saveDialog) {
             this.saveDialog.open(this.editingGraph || null);
         }
     }
 
-    /**
-     * Load a saved graph configuration for editing
-     * @param {number} graphId The graph ID to load
-     */
     async loadSavedGraph(graphId) {
         try {
             const result = await apiClient.getGraph(graphId);
@@ -602,7 +737,6 @@ class GraphBuilder extends BaseComponent {
 
             const graph = result.data;
 
-            // Store the editing graph info for later use (save dialog, header display)
             this.editingGraph = {
                 id: graph.id,
                 name: graph.name,
@@ -610,37 +744,23 @@ class GraphBuilder extends BaseComponent {
                 description: graph.description
             };
 
-            // Update header to show we're editing
             this.updateHeaderForEditing(graph.name);
 
-            // Set chart type
             stateManager.setChartType(graph.chartType);
 
-            // Set data source configuration
             if (graph.dataSource) {
                 const dsConfig = {
                     type: graph.dataSource.type || 'sql',
-                    query: graph.dataSource.query || '',
-                    apiUrl: graph.dataSource.apiUrl || '',
-                    apiMethod: graph.dataSource.apiMethod || 'GET',
-                    apiHeaders: graph.dataSource.apiHeaders || '',
-                    apiBody: graph.dataSource.apiBody || '',
-                    apiDataPath: graph.dataSource.apiDataPath || '',
-                    callbackClass: graph.dataSource.callbackClass || '',
-                    callbackMethod: graph.dataSource.callbackMethod || '',
-                    callbackParams: graph.dataSource.callbackParams || '',
-                    staticData: graph.dataSource.staticData || ''
+                    query: graph.dataSource.query || ''
                 };
                 stateManager.setDataSourceConfig(dsConfig);
                 stateManager.setQuery(dsConfig.query);
 
-                // Update the DataSourceEditor UI
                 if (this.dataSourceEditor) {
                     this.dataSourceEditor.setDataSourceConfig(dsConfig);
                 }
             }
 
-            // Set config (base and type-specific)
             if (graph.configBase) {
                 stateManager.setBaseConfig(graph.configBase);
             }
@@ -649,20 +769,16 @@ class GraphBuilder extends BaseComponent {
                 stateManager.setTypeConfig(graph.chartType, graph.configType);
             }
 
-            // Set data mapping
             if (graph.dataMapping) {
                 stateManager.setDataMapping(graph.dataMapping);
             }
 
-            // Execute the data source to load data
             if (graph.dataSource && this.dataSourceEditor) {
-                // Small delay to let UI update first
                 setTimeout(() => {
                     this.dataSourceEditor.execute();
                 }, 100);
             }
 
-            // Switch to data tab to show the loaded query
             this.switchTab('data');
 
         } catch (error) {
@@ -670,10 +786,6 @@ class GraphBuilder extends BaseComponent {
         }
     }
 
-    /**
-     * Update header to show editing mode with graph name
-     * @param {string} graphName The name of the graph being edited
-     */
     updateHeaderForEditing(graphName) {
         const logo = this.element.querySelector('.gb-logo');
         if (logo) {
@@ -697,35 +809,35 @@ class GraphBuilder extends BaseComponent {
     }
 
     /**
-     * Initialize the resizer between sidebar and content
+     * Initialize the left sidebar resizer
      */
-    initSidebarResizer(resizer) {
+    initLeftSidebarResizer(resizer) {
         let isResizing = false;
         let startX = 0;
         let startWidth = 0;
 
         const onMouseDown = (e) => {
+            if (this.leftSidebarCollapsed) return;
             isResizing = true;
             startX = e.clientX;
-            startWidth = this.sidebar.offsetWidth;
+            startWidth = this.leftSidebar.offsetWidth;
             document.body.style.cursor = 'col-resize';
             document.body.style.userSelect = 'none';
-            resizer.classList.add('gb-sidebar-resizer--active');
+            resizer.classList.add('gb-left-sidebar-resizer--active');
         };
 
         const onMouseMove = (e) => {
             if (!isResizing) return;
 
             const deltaX = e.clientX - startX;
-            const minWidth = 280;
-            const maxWidth = 600;
+            const minWidth = 200;
+            const maxWidth = 400;
 
             let newWidth = startWidth + deltaX;
             newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
 
-            this.sidebar.style.width = `${newWidth}px`;
+            this.leftSidebar.style.width = `${newWidth}px`;
 
-            // Trigger resize on preview panel
             if (this.previewPanel) {
                 this.previewPanel.resize();
             }
@@ -736,11 +848,10 @@ class GraphBuilder extends BaseComponent {
             isResizing = false;
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
-            resizer.classList.remove('gb-sidebar-resizer--active');
+            resizer.classList.remove('gb-left-sidebar-resizer--active');
 
-            // Save width to localStorage
             try {
-                localStorage.setItem('graphBuilder_sidebarWidth', this.sidebar.style.width);
+                localStorage.setItem('graphBuilder_leftSidebarWidth', this.leftSidebar.style.width);
             } catch (e) {
                 // Ignore
             }
@@ -750,7 +861,6 @@ class GraphBuilder extends BaseComponent {
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
 
-        // Store for cleanup
         this.eventBindings.push(
             { element: resizer, event: 'mousedown', handler: onMouseDown },
             { element: document, event: 'mousemove', handler: onMouseMove },
@@ -759,9 +869,9 @@ class GraphBuilder extends BaseComponent {
 
         // Restore saved width
         try {
-            const savedWidth = localStorage.getItem('graphBuilder_sidebarWidth');
+            const savedWidth = localStorage.getItem('graphBuilder_leftSidebarWidth');
             if (savedWidth) {
-                this.sidebar.style.width = savedWidth;
+                this.leftSidebar.style.width = savedWidth;
             }
         } catch (e) {
             // Ignore
@@ -769,47 +879,38 @@ class GraphBuilder extends BaseComponent {
     }
 
     /**
-     * Initialize the resizer between data explorer and query editor
+     * Initialize the preview panel resizer
      */
-    initDataResizer(resizer) {
+    initPreviewResizer(resizer) {
         let isResizing = false;
-        let startY = 0;
-        let startTopHeight = 0;
+        let startX = 0;
+        let startWidth = 0;
 
         const onMouseDown = (e) => {
-            // Expand collapsed sections before resizing
-            this.expandSectionForResize(this.dataExplorerSection, 'explorer');
-            this.expandSectionForResize(this.dataSourceSection, 'datasource');
-
+            if (this.previewCollapsed) return;
             isResizing = true;
-            startY = e.clientY;
-            // Use the collapsible section wrapper height
-            startTopHeight = this.dataExplorerSection.offsetHeight;
-            document.body.style.cursor = 'row-resize';
+            startX = e.clientX;
+            startWidth = this.previewSection.offsetWidth;
+            document.body.style.cursor = 'col-resize';
             document.body.style.userSelect = 'none';
-            resizer.classList.add('gb-data-resizer--active');
+            resizer.classList.add('gb-preview-resizer--active');
         };
 
         const onMouseMove = (e) => {
             if (!isResizing) return;
 
-            const deltaY = e.clientY - startY;
-            const parentHeight = this.tabPanels.data.offsetHeight;
-            const resizerHeight = resizer.offsetHeight;
-            const minHeight = 100; // Minimum height for each section
+            const deltaX = startX - e.clientX; // Reversed because dragging left increases width
+            const minWidth = 300;
+            const maxWidth = 800;
 
-            let newTopHeight = startTopHeight + deltaY;
+            let newWidth = startWidth + deltaX;
+            newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
 
-            // Constrain heights
-            newTopHeight = Math.max(minHeight, newTopHeight);
-            newTopHeight = Math.min(parentHeight - resizerHeight - minHeight, newTopHeight);
+            this.previewSection.style.width = `${newWidth}px`;
 
-            // Calculate flex basis percentages
-            const topPercent = (newTopHeight / parentHeight) * 100;
-
-            // Apply to collapsible section wrappers
-            this.dataExplorerSection.style.flex = `0 0 ${topPercent}%`;
-            this.dataSourceSection.style.flex = '1 1 auto';
+            if (this.previewPanel) {
+                this.previewPanel.resize();
+            }
         };
 
         const onMouseUp = () => {
@@ -817,19 +918,34 @@ class GraphBuilder extends BaseComponent {
             isResizing = false;
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
-            resizer.classList.remove('gb-data-resizer--active');
+            resizer.classList.remove('gb-preview-resizer--active');
+
+            try {
+                localStorage.setItem('graphBuilder_previewWidth', this.previewSection.style.width);
+            } catch (e) {
+                // Ignore
+            }
         };
 
         resizer.addEventListener('mousedown', onMouseDown);
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
 
-        // Store for cleanup
         this.eventBindings.push(
             { element: resizer, event: 'mousedown', handler: onMouseDown },
             { element: document, event: 'mousemove', handler: onMouseMove },
             { element: document, event: 'mouseup', handler: onMouseUp }
         );
+
+        // Restore saved width
+        try {
+            const savedWidth = localStorage.getItem('graphBuilder_previewWidth');
+            if (savedWidth) {
+                this.previewSection.style.width = savedWidth;
+            }
+        } catch (e) {
+            // Ignore
+        }
     }
 
     /**
@@ -841,13 +957,11 @@ class GraphBuilder extends BaseComponent {
         let startQueryHeight = 0;
 
         const onMouseDown = (e) => {
-            // Expand collapsed sections before resizing
             this.expandSectionForResize(this.dataSourceSection, 'datasource');
             this.expandSectionForResize(this.queryResultsSection, 'results');
 
             isResizing = true;
             startY = e.clientY;
-            // Use the collapsible section wrapper height
             startQueryHeight = this.dataSourceSection.offsetHeight;
             document.body.style.cursor = 'row-resize';
             document.body.style.userSelect = 'none';
@@ -858,14 +972,11 @@ class GraphBuilder extends BaseComponent {
             if (!isResizing) return;
 
             const deltaY = e.clientY - startY;
-            const minHeight = 80; // Minimum height for each section
+            const minHeight = 80;
 
             let newQueryHeight = startQueryHeight + deltaY;
-
-            // Constrain heights
             newQueryHeight = Math.max(minHeight, newQueryHeight);
 
-            // Apply to collapsible section wrappers
             this.dataSourceSection.style.flex = `0 0 ${newQueryHeight}px`;
             this.queryResultsSection.style.flex = '1 1 auto';
         };
@@ -877,7 +988,6 @@ class GraphBuilder extends BaseComponent {
             document.body.style.userSelect = '';
             resizer.classList.remove('gb-data-resizer--active');
 
-            // Save height to localStorage
             try {
                 localStorage.setItem('graphBuilder_queryHeight', this.dataSourceSection.style.flex);
             } catch (e) {
@@ -889,7 +999,6 @@ class GraphBuilder extends BaseComponent {
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
 
-        // Store for cleanup
         this.eventBindings.push(
             { element: resizer, event: 'mousedown', handler: onMouseDown },
             { element: document, event: 'mousemove', handler: onMouseMove },
@@ -909,7 +1018,6 @@ class GraphBuilder extends BaseComponent {
     }
 
     // Public API
-
     setChartType(type) {
         stateManager.setChartType(type);
     }

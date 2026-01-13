@@ -2,6 +2,7 @@ import { API_ENDPOINTS } from '../utils/constants.js';
 
 /**
  * ApiClient - HTTP client for backend API communication
+ * Uses FormData with $_POST['submit'] pattern for your framework
  */
 class ApiClient {
     constructor(baseUrl = '') {
@@ -9,54 +10,12 @@ class ApiClient {
     }
 
     /**
-     * Execute SQL query
-     * @param {string} sql
-     * @returns {Promise<Object>}
+     * Get the controller endpoint URL
+     * @returns {string}
      */
-    async executeQuery(sql) {
-        const response = await this.post(API_ENDPOINTS.QUERY, { sql });
-
-        if (!response.success) {
-            throw new Error(response.error || response.errors?.join(', ') || 'Query failed');
-        }
-
-        return {
-            data: response.data,
-            columns: response.columns,
-            rowCount: response.rowCount,
-            warnings: response.warnings || []
-        };
-    }
-
-    /**
-     * Generic GET request
-     * @param {string} endpoint
-     * @param {Object} params
-     * @returns {Promise<Object>}
-     */
-    async get(endpoint, params = {}) {
-        // Build URL relative to current page
-        const baseUrl = this.baseUrl || this.getBasePath();
-        let url = baseUrl + endpoint;
-
-        // Add query params
-        const queryString = Object.entries(params)
-            .filter(([, value]) => value !== undefined && value !== null)
-            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-            .join('&');
-
-        if (queryString) {
-            url += (url.includes('?') ? '&' : '?') + queryString;
-        }
-
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-
-        return this.handleResponse(response);
+    getEndpointUrl() {
+        const basePath = this.baseUrl || this.getBasePath();
+        return basePath + API_ENDPOINTS.CONTROLLER;
     }
 
     /**
@@ -71,23 +30,56 @@ class ApiClient {
     }
 
     /**
-     * Generic POST request
-     * @param {string} endpoint
-     * @param {Object} data
+     * Generic POST request using FormData with submit action
+     * @param {string} action - The submit action name
+     * @param {Object} data - Data to send
      * @returns {Promise<Object>}
      */
-    async post(endpoint, data = {}) {
-        const baseUrl = this.baseUrl || this.getBasePath();
-        const response = await fetch(baseUrl + endpoint, {
+    async post(action, data = {}) {
+        const formData = new FormData();
+        formData.append('submit', action);
+
+        // Add all data fields
+        for (const [key, value] of Object.entries(data)) {
+            if (value === null || value === undefined) continue;
+            if (typeof value === 'object') {
+                // Objects and arrays are JSON-encoded
+                formData.append(key, JSON.stringify(value));
+            } else {
+                formData.append(key, value);
+            }
+        }
+
+        const response = await fetch(this.getEndpointUrl(), {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(data)
+            body: formData  // No Content-Type header - browser sets multipart boundary
         });
 
         return this.handleResponse(response);
+    }
+
+    /**
+     * Execute SQL query
+     * @param {string} sql
+     * @returns {Promise<Object>}
+     */
+    async executeQuery(sql) {
+        const response = await this.post('query-execute', { sql });
+
+        if (!response.success) {
+            const errorMsg = response.screen_message?.[0]?.message || 'Query failed';
+            throw new Error(errorMsg);
+        }
+
+        // Extract data from Utility::ajaxResponseTrue format
+        const responseData = response.data || {};
+
+        return {
+            data: responseData.data || responseData,
+            columns: responseData.columns || [],
+            rowCount: responseData.rowCount || 0,
+            warnings: response.warnings || []
+        };
     }
 
     /**
@@ -96,7 +88,7 @@ class ApiClient {
      * @returns {Promise<Object>}
      */
     async saveGraph(data) {
-        return this.post('api/graphs/save.php', data);
+        return this.post('graph-save', data);
     }
 
     /**
@@ -105,7 +97,7 @@ class ApiClient {
      * @returns {Promise<Object>}
      */
     async listGraphs(params = {}) {
-        return this.get('api/graphs/list.php', params);
+        return this.post('graphs-list-ajax', params);
     }
 
     /**
@@ -115,7 +107,7 @@ class ApiClient {
      */
     async getGraph(identifier) {
         const param = typeof identifier === 'number' ? { id: identifier } : { slug: identifier };
-        return this.get('api/graphs/get.php', param);
+        return this.post('graph-get', param);
     }
 
     /**
@@ -124,7 +116,7 @@ class ApiClient {
      * @returns {Promise<Object>}
      */
     async deleteGraph(id) {
-        return this.post('api/graphs/delete.php', { id });
+        return this.post('graph-delete', { id });
     }
 
     /**
@@ -137,29 +129,29 @@ class ApiClient {
         const data = typeof identifier === 'number'
             ? { id: identifier, filters }
             : { slug: identifier, filters };
-        return this.post('api/graphs/render.php', data);
+        return this.post('graph-render', data);
     }
 
     /**
-     * Fetch data from external API source
-     * @param {Object} config API configuration
+     * Get database tables
+     * @param {string} search Optional search filter
      * @returns {Promise<Object>}
      */
-    async fetchApiSource(config) {
-        return this.post('api/datasource/fetch-api.php', config);
+    async getTables(search = '') {
+        return this.post('schema-tables', { search });
     }
 
     /**
-     * Execute PHP callback to fetch data
-     * @param {Object} config Callback configuration
+     * Get table fields/columns
+     * @param {string} table Table name
      * @returns {Promise<Object>}
      */
-    async executeCallback(config) {
-        return this.post('api/datasource/execute-callback.php', config);
+    async getFields(table) {
+        return this.post('schema-fields', { table });
     }
 
     /**
-     * Handle response
+     * Handle response from Utility::ajaxResponse format
      * @param {Response} response
      * @returns {Promise<Object>}
      */
@@ -172,8 +164,10 @@ class ApiClient {
             throw new Error('Invalid JSON response from server');
         }
 
-        if (!response.ok && !data.error && !data.errors) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        // Utility::ajaxResponse format has: success, data, screen_message, custom_data
+        if (!data.success) {
+            const errorMsg = data.screen_message?.[0]?.message || 'Request failed';
+            throw new Error(errorMsg);
         }
 
         return data;

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/utility.php';
 require_once __DIR__ . '/../api/config/database.php';
 require_once __DIR__ . '/../classes/GraphConfig.php';
 
@@ -64,7 +65,7 @@ function getSourceTypeInfo($type) {
             <div class="usage-header-actions">
                 <div id="theme-switcher"></div>
                 <?php if ($graph): ?>
-                <a href="<?= get_base_path() ?>/?edit=<?= $graph['graph_id'] ?>" class="usage-back-link">
+                <a href="<?= get_base_path() ?>?urlq=graphs/edit/<?= $graph['graph_id'] ?>" class="usage-back-link">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
                         <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                         <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -79,7 +80,7 @@ function getSourceTypeInfo($type) {
                     </svg>
                     Docs
                 </a>
-                <a href="<?= get_base_path() ?>/graphs/" class="usage-back-link">
+                <a href="<?= get_base_path() ?>?urlq=graphs/list" class="usage-back-link">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
@@ -97,7 +98,7 @@ function getSourceTypeInfo($type) {
                     <line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
                 <p><?= htmlspecialchars($error) ?></p>
-                <a href="<?= get_base_path() ?>/graphs/" class="usage-cta" style="margin-top: var(--gb-spacing-md);">
+                <a href="<?= get_base_path() ?>?urlq=graphs/list" class="usage-cta" style="margin-top: var(--gb-spacing-md);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
@@ -344,28 +345,35 @@ function getSourceTypeInfo($type) {
             const loading = document.getElementById('chartLoading');
             loading.style.display = 'flex';
 
-            fetch(basePath + '/api/graphs/render.php', {
+            var formData = new FormData();
+            formData.append('submit', 'graph-render');
+            formData.append('id', graphId);
+            formData.append('filters', JSON.stringify(filters || []));
+
+            fetch(basePath + '?urlq=graphs/view', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    id: graphId,
-                    filters: filters || []
-                })
+                body: formData
             })
             .then(response => response.json())
-            .then(data => {
+            .then(response => {
                 loading.style.display = 'none';
 
-                if (!data.success) {
-                    alert('Error loading chart: ' + (data.error || 'Unknown error'));
+                if (!response.success) {
+                    var errorMsg = response.screen_message && response.screen_message[0] ? response.screen_message[0].message : 'Unknown error';
+                    alert('Error loading chart: ' + errorMsg);
                     return;
                 }
 
+                var data = response.data || {};
+
                 // Update row count
-                document.getElementById('rowCount').textContent = '(' + data.rowCount + ' rows)';
+                var rowCount = data.data ? data.data.length : 0;
+                document.getElementById('rowCount').textContent = '(' + rowCount + ' rows)';
 
                 // Render chart
-                renderChart(data.echartsOption);
+                if (data.echartsOption) {
+                    renderChart(data.echartsOption);
+                }
 
                 // Update data preview
                 updateDataPreview(data.data);

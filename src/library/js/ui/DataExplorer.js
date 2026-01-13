@@ -115,15 +115,17 @@ class DataExplorer extends BaseComponent {
         this.showDropdown();
 
         try {
-            const response = await this.apiClient.get('api/schema/tables.php', { search });
+            const response = await this.apiClient.getTables(search);
 
             if (response.success) {
-                this.database = response.database;
-                this.tables = response.tables;
+                const data = response.data || {};
+                this.database = data.database;
+                this.tables = data.tables || [];
                 this.updateDbInfo();
                 this.renderDropdown();
             } else {
-                this.dropdown.innerHTML = `<div class="gb-error">${response.error}</div>`;
+                const errorMsg = response.screen_message?.[0]?.message || 'Error loading tables';
+                this.dropdown.innerHTML = `<div class="gb-error">${errorMsg}</div>`;
             }
         } catch (error) {
             this.dropdown.innerHTML = `<div class="gb-error">${error.message}</div>`;
@@ -203,13 +205,15 @@ class DataExplorer extends BaseComponent {
         this.fieldsList.innerHTML = '<div class="gb-loading">Loading fields...</div>';
 
         try {
-            const response = await this.apiClient.get('api/schema/fields.php', { table: tableName });
+            const response = await this.apiClient.getFields(tableName);
 
             if (response.success) {
-                this.fields = response.fields;
+                const data = response.data || {};
+                this.fields = data.fields || [];
                 this.renderFields();
             } else {
-                this.fieldsList.innerHTML = `<div class="gb-error">${response.error}</div>`;
+                const errorMsg = response.screen_message?.[0]?.message || 'Error loading fields';
+                this.fieldsList.innerHTML = `<div class="gb-error">${errorMsg}</div>`;
             }
         } catch (error) {
             this.fieldsList.innerHTML = `<div class="gb-error">${error.message}</div>`;

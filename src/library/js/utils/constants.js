@@ -30,7 +30,10 @@ export const DEFAULT_COLORS = [
 ];
 
 export const API_ENDPOINTS = {
-    QUERY: 'api/query/execute.php'
+    // All actions go through the controller
+    // For standalone access: graphs.php
+    // For framework access: ?urlq=graphs/view
+    CONTROLLER: 'graphs.php'
 };
 
 export const DEFAULT_CONFIG = {
