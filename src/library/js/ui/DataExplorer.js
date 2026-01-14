@@ -33,6 +33,10 @@ class DataExplorer extends BaseComponent {
     render() {
         this.element = this.createElement('div', { className: 'gb-data-explorer' });
 
+        // Header
+        const header = this.createElement('div', { className: 'gb-data-explorer-header' }, 'Data Explorer');
+        this.element.appendChild(header);
+
         // Database info section
         this.dbInfoSection = this.createElement('div', { className: 'gb-db-info' });
         this.dbNameEl = this.createElement('div', { className: 'gb-db-name' });

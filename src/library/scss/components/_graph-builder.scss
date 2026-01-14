@@ -584,7 +584,9 @@
 .gb-collapsible-header-title {
   font-size: var(--gb-font-size-sm);
   font-weight: 600;
-  color: var(--gb-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gb-text-muted);
 }
 
 .gb-collapsible-header-badge {

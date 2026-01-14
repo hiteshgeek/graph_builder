@@ -4,10 +4,10 @@
  * Handles all graph builder routes and API actions
  *
  * URL Routes:
- * - ?urlq=graphs/view         -> Main graph builder UI
- * - ?urlq=graphs/view/123     -> View saved graph
- * - ?urlq=graphs/list         -> List saved graphs page
- * - ?urlq=graphs/edit/123     -> Edit existing graph
+ * - ?urlq=graph/view         -> Main graph builder UI
+ * - ?urlq=graph/view/123     -> View saved graph
+ * - ?urlq=graph/list         -> List saved graphs page
+ * - ?urlq=graph/edit/123     -> Edit existing graph
  *
  * POST Actions (via $_POST['submit']):
  * - graph-save, graph-delete, graph-render, query-execute, etc.
@@ -18,10 +18,11 @@ require_once __DIR__ . '/includes/utility.php';
 require_once __DIR__ . '/api/config/database.php';
 require_once __DIR__ . '/classes/GraphConfig.php';
 require_once __DIR__ . '/classes/DataSourceFactory.php';
+require_once __DIR__ . '/classes/GraphRenderer.php';
 
 // Parse URL segments (your framework provides $url, or parse manually)
 if (!isset($url)) {
-    $url = isset($_GET['urlq']) ? explode('/', $_GET['urlq']) : array('graphs', 'view');
+    $url = isset($_GET['urlq']) ? explode('/', $_GET['urlq']) : array('graph', 'view');
 }
 $url[1] = isset($url[1]) ? $url[1] : 'view';
 $url[2] = isset($url[2]) ? $url[2] : null;
@@ -60,11 +61,13 @@ if (isset($_POST['submit'])) {
 switch ($url[1]) {
     case "view":
         if (isset($url[2]) && is_numeric($url[2])) {
-            // View specific graph: ?urlq=graphs/view/123
+            // View specific graph: ?urlq=graph/view/123
             $_GET['id'] = $url[2];
             include __DIR__ . '/graphs/view.php';
         } else {
-            // Main builder UI: ?urlq=graphs/view
+            // Main builder UI: ?urlq=graph/view
+            // Unset urlq to prevent infinite loop when including index.php
+            unset($_GET['urlq']);
             include __DIR__ . '/index.php';
         }
         break;
@@ -75,6 +78,8 @@ switch ($url[1]) {
     case "edit":
         // Edit mode - pass ID to builder
         $_GET['edit'] = $url[2];
+        // Unset urlq to prevent infinite loop when including index.php
+        unset($_GET['urlq']);
         include __DIR__ . '/index.php';
         break;
     default:
@@ -192,9 +197,9 @@ function graph_get($data)
         $graphConfig = new GraphConfig($pdo);
 
         if (isset($data['id']) && is_numeric($data['id'])) {
-            $graph = $graphConfig->getById((int) $data['id']);
+            $graph = $graphConfig->get((int) $data['id']);
         } elseif (isset($data['slug'])) {
-            $graph = $graphConfig->getBySlug($data['slug']);
+            $graph = $graphConfig->get($data['slug']);
         } else {
             Utility::ajaxResponseFalse('ID or slug required');
         }
@@ -203,7 +208,35 @@ function graph_get($data)
             Utility::ajaxResponseFalse('Graph not found');
         }
 
-        Utility::ajaxResponseTrue("Graph loaded", $graph);
+        // Transform to camelCase for frontend
+        $response = array(
+            'id' => $graph['gbc_id'],
+            'slug' => $graph['slug'],
+            'name' => $graph['name'],
+            'description' => $graph['description'],
+            'chartType' => $graph['chart_type'],
+            'configBase' => $graph['config_base'],
+            'configType' => $graph['config_type'],
+            'dataMapping' => $graph['data_mapping'],
+            'dataSource' => array(
+                'type' => $graph['source_type'],
+                'query' => $graph['sql_query'],
+                'apiUrl' => $graph['api_url'],
+                'apiMethod' => $graph['api_method'],
+                'apiHeaders' => $graph['api_headers'],
+                'apiBody' => $graph['api_body'],
+                'apiDataPath' => $graph['api_data_path'],
+                'callbackClass' => $graph['callback_class'],
+                'callbackMethod' => $graph['callback_method'],
+                'callbackParams' => $graph['callback_params'],
+                'staticData' => $graph['static_data'],
+                'cacheTtl' => $graph['cache_ttl']
+            ),
+            'createdAt' => $graph['created_ts'],
+            'updatedAt' => $graph['updated_ts']
+        );
+
+        Utility::ajaxResponseTrue("Graph loaded", $response);
     } catch (Exception $e) {
         Utility::ajaxResponseFalse($e->getMessage());
     }
@@ -296,30 +329,27 @@ function graph_render($data)
     try {
         $db = Database::getInstance();
         $pdo = $db->getConnection();
-        $graphConfig = new GraphConfig($pdo);
 
-        // Get graph
+        // Determine identifier
+        $identifier = null;
         if (isset($data['id']) && is_numeric($data['id'])) {
-            $graph = $graphConfig->getById((int) $data['id']);
+            $identifier = (int) $data['id'];
         } elseif (isset($data['slug'])) {
-            $graph = $graphConfig->getBySlug($data['slug']);
+            $identifier = $data['slug'];
         } else {
             Utility::ajaxResponseFalse('ID or slug required');
         }
 
-        if (!$graph) {
+        // Use GraphRenderer to render the graph
+        $renderer = new GraphRenderer($pdo);
+        $filters = isset($data['filters']) ? $data['filters'] : array();
+        $result = $renderer->render($identifier, $filters);
+
+        if (!$result) {
             Utility::ajaxResponseFalse('Graph not found');
         }
 
-        // Get data from source
-        $dataSource = DataSourceFactory::create($graph['dataSource'], $pdo);
-        $filters = isset($data['filters']) ? $data['filters'] : array();
-        $sourceData = $dataSource->fetch($filters);
-
-        Utility::ajaxResponseTrue("Graph rendered", array(
-            'config' => $graph,
-            'data' => $sourceData
-        ));
+        Utility::ajaxResponseTrue("Graph rendered", $result);
     } catch (Exception $e) {
         Utility::ajaxResponseFalse($e->getMessage());
     }

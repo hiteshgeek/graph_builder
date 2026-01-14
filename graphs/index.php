@@ -94,7 +94,7 @@ function getSourceLabel($type) {
                     </svg>
                     Docs
                 </a>
-                <a href="<?= get_base_path() ?>?urlq=graphs/view" class="usage-back-link">
+                <a href="<?= get_base_path() ?>?urlq=graph/view" class="usage-back-link">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
@@ -127,7 +127,7 @@ function getSourceLabel($type) {
                     Filter
                 </button>
                 <?php if (!empty($search) || !empty($chartType)): ?>
-                <a href="<?= get_base_path() ?>?urlq=graphs/list" class="graphs-filter-clear">Clear</a>
+                <a href="<?= get_base_path() ?>?urlq=graph/list" class="graphs-filter-clear">Clear</a>
                 <?php endif; ?>
             </form>
         </section>
@@ -151,7 +151,7 @@ function getSourceLabel($type) {
                 </svg>
                 <h3>No Graphs Found</h3>
                 <p>Create your first graph in the builder and save it here.</p>
-                <a href="<?= get_base_path() ?>?urlq=graphs/view" class="usage-cta">
+                <a href="<?= get_base_path() ?>?urlq=graph/view" class="usage-cta">
                     Create Graph
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
                         <path d="M12 5v14M5 12h14"/>
@@ -171,13 +171,13 @@ function getSourceLabel($type) {
                             <span class="graph-card-slug"><?= htmlspecialchars($graph['slug']) ?></span>
                         </div>
                         <div class="graph-card-actions">
-                            <a href="<?= get_base_path() ?>?urlq=graphs/view/<?= $graph['gbc_id'] ?>" class="graph-card-btn" title="Preview">
+                            <a href="<?= get_base_path() ?>?urlq=graph/view/<?= $graph['gbc_id'] ?>" class="graph-card-btn" title="Preview">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                     <circle cx="12" cy="12" r="3"/>
                                 </svg>
                             </a>
-                            <a href="<?= get_base_path() ?>?urlq=graphs/edit/<?= $graph['gbc_id'] ?>" class="graph-card-btn" title="Edit in Builder">
+                            <a href="<?= get_base_path() ?>?urlq=graph/edit/<?= $graph['gbc_id'] ?>" class="graph-card-btn" title="Edit in Builder">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                                     <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -314,7 +314,7 @@ function getSourceLabel($type) {
             formData.append('submit', 'graph-delete');
             formData.append('id', id);
 
-            fetch('<?= get_base_path() ?>?urlq=graphs/view', {
+            fetch('<?= get_base_path() ?>/?urlq=graph/view', {
                 method: 'POST',
                 body: formData
             })

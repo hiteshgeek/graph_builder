@@ -1,0 +1,15 @@
+# Graph Builder URL Routing
+# Routes all ?urlq= requests to graph.inc.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /graph_builder/
+
+    # If urlq parameter exists, route to graph.inc.php
+    RewriteCond %{QUERY_STRING} urlq=graph
+    RewriteCond %{REQUEST_URI} !graph\.inc\.php
+    RewriteRule ^(.*)$ graph.inc.php [L,QSA]
+</IfModule>
+
+# Set graph.inc.php as the directory index when urlq is present
+DirectoryIndex graph.inc.php index.php

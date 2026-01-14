@@ -1,4 +1,10 @@
 <?php
+// Route to graph.inc.php if urlq parameter is present
+if (isset($_GET['urlq'])) {
+    require_once __DIR__ . '/graph.inc.php';
+    exit;
+}
+
 require_once __DIR__ . '/includes/functions.php';
 
 // Check if editing an existing graph
@@ -11,6 +17,10 @@ $editGraphId = isset($_GET['edit']) ? (int) $_GET['edit'] : null;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Graph Builder</title>
     <?php favicon(); ?>
+    <!-- Google Fonts - Roboto (SixOrbit Design System) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Highlight.js for SQL syntax highlighting -->
     <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
     <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" disabled>

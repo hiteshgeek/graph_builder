@@ -813,6 +813,8 @@ class GraphBuilder extends BaseComponent {
             startWidth = this.leftSidebar.offsetWidth;
             document.body.style.cursor = 'col-resize';
             document.body.style.userSelect = 'none';
+            // Disable transition during resize for smooth dragging
+            this.leftSidebar.style.transition = 'none';
             resizer.classList.add('gb-left-sidebar-resizer--active');
         };
 
@@ -820,11 +822,9 @@ class GraphBuilder extends BaseComponent {
             if (!isResizing) return;
 
             const deltaX = e.clientX - startX;
-            const minWidth = 200;
-            const maxWidth = 400;
-
             let newWidth = startWidth + deltaX;
-            newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+            // Minimum width of 100px to prevent collapsing
+            if (newWidth < 100) newWidth = 100;
 
             this.leftSidebar.style.width = `${newWidth}px`;
 
@@ -838,6 +838,8 @@ class GraphBuilder extends BaseComponent {
             isResizing = false;
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
+            // Re-enable transition after resize
+            this.leftSidebar.style.transition = '';
             resizer.classList.remove('gb-left-sidebar-resizer--active');
 
             try {
@@ -883,6 +885,8 @@ class GraphBuilder extends BaseComponent {
             startWidth = this.previewSection.offsetWidth;
             document.body.style.cursor = 'col-resize';
             document.body.style.userSelect = 'none';
+            // Disable transition during resize for smooth dragging
+            this.previewSection.style.transition = 'none';
             resizer.classList.add('gb-preview-resizer--active');
         };
 
@@ -890,11 +894,9 @@ class GraphBuilder extends BaseComponent {
             if (!isResizing) return;
 
             const deltaX = startX - e.clientX; // Reversed because dragging left increases width
-            const minWidth = 300;
-            const maxWidth = 800;
-
             let newWidth = startWidth + deltaX;
-            newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+            // Minimum width of 100px to prevent collapsing
+            if (newWidth < 100) newWidth = 100;
 
             this.previewSection.style.width = `${newWidth}px`;
 
@@ -908,6 +910,8 @@ class GraphBuilder extends BaseComponent {
             isResizing = false;
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
+            // Re-enable transition after resize
+            this.previewSection.style.transition = '';
             resizer.classList.remove('gb-preview-resizer--active');
 
             try {

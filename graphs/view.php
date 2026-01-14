@@ -65,7 +65,7 @@ function getSourceTypeInfo($type) {
             <div class="usage-header-actions">
                 <div id="theme-switcher"></div>
                 <?php if ($graph): ?>
-                <a href="<?= get_base_path() ?>?urlq=graphs/edit/<?= $graph['graph_id'] ?>" class="usage-back-link">
+                <a href="<?= get_base_path() ?>?urlq=graph/edit/<?= $graph['graph_id'] ?>" class="usage-back-link">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
                         <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                         <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -80,7 +80,7 @@ function getSourceTypeInfo($type) {
                     </svg>
                     Docs
                 </a>
-                <a href="<?= get_base_path() ?>?urlq=graphs/list" class="usage-back-link">
+                <a href="<?= get_base_path() ?>?urlq=graph/list" class="usage-back-link">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
@@ -98,7 +98,7 @@ function getSourceTypeInfo($type) {
                     <line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
                 <p><?= htmlspecialchars($error) ?></p>
-                <a href="<?= get_base_path() ?>?urlq=graphs/list" class="usage-cta" style="margin-top: var(--gb-spacing-md);">
+                <a href="<?= get_base_path() ?>?urlq=graph/list" class="usage-cta" style="margin-top: var(--gb-spacing-md);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
@@ -350,7 +350,7 @@ function getSourceTypeInfo($type) {
             formData.append('id', graphId);
             formData.append('filters', JSON.stringify(filters || []));
 
-            fetch(basePath + '?urlq=graphs/view', {
+            fetch(basePath + '/?urlq=graph/view', {
                 method: 'POST',
                 body: formData
             })
@@ -415,6 +415,15 @@ function getSourceTypeInfo($type) {
             }
             if (option.title) {
                 option.title.textStyle = { color: textColor };
+            }
+            // Apply text color to pie chart labels
+            if (option.series && Array.isArray(option.series)) {
+                option.series.forEach(function(series) {
+                    if (series.type === 'pie') {
+                        series.label = series.label || {};
+                        series.label.color = textColor;
+                    }
+                });
             }
 
             chart.setOption(option);

@@ -23,9 +23,7 @@ class DataMapping extends BaseComponent {
         this.element = this.createElement('div', { className: 'gb-data-mapping' });
 
         // Header
-        const header = this.createElement('div', { className: 'gb-data-mapping-header' });
-        const title = this.createElement('span', { className: 'gb-data-mapping-title' }, 'Data Mapping');
-        header.appendChild(title);
+        const header = this.createElement('div', { className: 'gb-data-mapping-header' }, 'Data Mapping');
         this.element.appendChild(header);
 
         // Content container

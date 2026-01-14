@@ -8,15 +8,15 @@
 }
 
 .gb-data-mapping-header {
-    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
-    background: var(--gb-bg-tertiary);
-    border-bottom: 1px solid var(--gb-border-color);
-}
-
-.gb-data-mapping-title {
+    @include flex-between;
+    padding: var(--gb-spacing-md);
     font-size: var(--gb-font-size-sm);
     font-weight: 600;
-    color: var(--gb-text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gb-text-muted);
+    border-bottom: 1px solid var(--gb-border-color);
+    flex-shrink: 0;
 }
 
 .gb-data-mapping-content {

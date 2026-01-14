@@ -31,9 +31,9 @@ export const DEFAULT_COLORS = [
 
 export const API_ENDPOINTS = {
     // All actions go through the controller
-    // For standalone access: graphs.php
-    // For framework access: ?urlq=graphs/view
-    CONTROLLER: 'graphs.php'
+    // For standalone access: graph.inc.php
+    // For framework access: ?urlq=graph/view
+    CONTROLLER: 'graph.inc.php'
 };
 
 export const DEFAULT_CONFIG = {

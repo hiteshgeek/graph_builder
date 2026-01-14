@@ -1,73 +1,137 @@
 // CSS Custom Properties for theming
+// Based on SixOrbit ERP Common Design System
 :root {
-    // Primary colors
-    --gb-primary: #5470c6;
-    --gb-primary-light: #7b93d4;
-    --gb-primary-dark: #3d5aa9;
+    // Primary Colors - Blue Palette (SixOrbit)
+    --gb-primary: #1a73e8;
+    --gb-primary-dark: #1765cc;
+    --gb-primary-darker: #1557b0;
+    --gb-primary-light: #e8f0fe;
+    --gb-primary-lighter: #f1f6fd;
 
-    // Semantic colors
-    --gb-success: #52c41a;
-    --gb-warning: #faad14;
-    --gb-danger: #ff4d4f;
-    --gb-info: #1890ff;
+    // Secondary Colors (SixOrbit)
+    --gb-secondary-green: #34a853;
+    --gb-secondary-green-light: #e6f4ea;
+    --gb-secondary-yellow: #fbbc04;
+    --gb-secondary-yellow-light: #fef7e0;
+    --gb-secondary-red: #ea4335;
+    --gb-secondary-red-light: #fce8e6;
+    --gb-secondary-orange: #f9ab00;
+    --gb-secondary-orange-light: #fef0db;
+
+    // Semantic colors (SixOrbit)
+    --gb-success: #34a853;
+    --gb-success-light: #e6f4ea;
+    --gb-warning: #f9ab00;
+    --gb-warning-light: #fef7e0;
+    --gb-danger: #ea4335;
+    --gb-danger-light: #fce8e6;
+    --gb-info: #1a73e8;
+    --gb-info-light: #e8f0fe;
+
+    // Greyscale (SixOrbit)
+    --gb-grey-50: #fafafa;
+    --gb-grey-100: #f5f5f5;
+    --gb-grey-200: #e8eaed;
+    --gb-grey-300: #dadce0;
+    --gb-grey-400: #bdc1c6;
+    --gb-grey-500: #9aa0a6;
+    --gb-grey-600: #80868b;
+    --gb-grey-700: #5f6368;
+    --gb-grey-800: #3c4043;
+    --gb-grey-900: #202124;
+    --gb-white: #ffffff;
+    --gb-black: #000000;
 
     // Background colors
     --gb-bg-primary: #ffffff;
-    --gb-bg-secondary: #f5f7fa;
-    --gb-bg-tertiary: #e8ecf1;
-    --gb-bg-hover: #f0f2f5;
+    --gb-bg-secondary: #f5f5f5;
+    --gb-bg-tertiary: #e8eaed;
+    --gb-bg-hover: #f5f5f5;
 
     // Text colors
-    --gb-text-primary: #1a1a2e;
-    --gb-text-secondary: #606266;
-    --gb-text-muted: #909399;
-    --gb-text-placeholder: #c0c4cc;
+    --gb-text-primary: #202124;
+    --gb-text-secondary: #5f6368;
+    --gb-text-muted: #80868b;
+    --gb-text-placeholder: #9aa0a6;
 
     // Border colors
-    --gb-border-color: #dcdfe6;
-    --gb-border-color-light: #e4e7ed;
+    --gb-border-color: #dadce0;
+    --gb-border-color-light: #e8eaed;
 
-    // Spacing scale
+    // Spacing scale (SixOrbit)
     --gb-spacing-xs: 4px;
     --gb-spacing-sm: 8px;
-    --gb-spacing-md: 16px;
-    --gb-spacing-lg: 24px;
-    --gb-spacing-xl: 32px;
+    --gb-spacing-md: 12px;
+    --gb-spacing-lg: 16px;
+    --gb-spacing-xl: 20px;
+    --gb-spacing-2xl: 24px;
+    --gb-spacing-3xl: 32px;
+    --gb-spacing-4xl: 48px;
 
-    // Typography
-    --gb-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    --gb-font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
-    --gb-font-size-xs: 11px;
-    --gb-font-size-sm: 12px;
-    --gb-font-size-base: 14px;
+    // Typography (SixOrbit)
+    --gb-font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    --gb-font-family-display: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    --gb-font-mono: 'Roboto Mono', 'Courier New', monospace;
+
+    // Font Sizes (SixOrbit)
+    --gb-font-size-xs: 10px;
+    --gb-font-size-sm: 11px;
+    --gb-font-size-base: 13px;
+    --gb-font-size-md: 14px;
     --gb-font-size-lg: 16px;
-    --gb-font-size-xl: 20px;
-    --gb-font-size-2xl: 24px;
+    --gb-font-size-xl: 18px;
+    --gb-font-size-2xl: 20px;
+    --gb-font-size-3xl: 24px;
+    --gb-font-size-4xl: 28px;
+
+    // Font Weights (SixOrbit)
+    --gb-weight-normal: 400;
+    --gb-weight-medium: 500;
+    --gb-weight-semibold: 600;
+    --gb-weight-bold: 700;
+
+    // Line Heights (SixOrbit)
+    --gb-leading-tight: 1.2;
+    --gb-leading-normal: 1.5;
+    --gb-leading-relaxed: 1.75;
     --gb-line-height: 1.5;
 
-    // Border radius
+    // Border radius (SixOrbit)
     --gb-radius-sm: 4px;
-    --gb-radius-md: 6px;
-    --gb-radius-lg: 8px;
-    --gb-radius-xl: 12px;
+    --gb-radius-md: 8px;
+    --gb-radius-lg: 12px;
+    --gb-radius-xl: 16px;
+    --gb-radius-round: 50%;
 
-    // Shadows
-    --gb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --gb-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
-    --gb-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-    --gb-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+    // Shadows - Material Design (SixOrbit)
+    --gb-shadow-1: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+    --gb-shadow-2: 0 1px 3px 0 rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
+    --gb-shadow-3: 0 4px 8px 0 rgba(60, 64, 67, 0.3), 0 8px 12px 6px rgba(60, 64, 67, 0.15);
+    --gb-shadow-4: 0 8px 12px 0 rgba(60, 64, 67, 0.3), 0 12px 16px 8px rgba(60, 64, 67, 0.15);
+    --gb-shadow-hover: 0 2px 8px rgba(60, 64, 67, 0.2);
 
-    // Transitions
-    --gb-transition-fast: 150ms ease;
-    --gb-transition-normal: 250ms ease;
-    --gb-transition-slow: 350ms ease;
+    // Legacy shadow aliases
+    --gb-shadow-sm: var(--gb-shadow-1);
+    --gb-shadow-md: var(--gb-shadow-2);
+    --gb-shadow-lg: var(--gb-shadow-3);
+    --gb-shadow-xl: var(--gb-shadow-4);
 
-    // Z-index layers
+    // Transitions (SixOrbit)
+    --gb-transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --gb-transition-normal: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --gb-transition-slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    // Z-index layers (SixOrbit)
+    --gb-z-base: 1;
     --gb-z-dropdown: 100;
     --gb-z-sticky: 200;
-    --gb-z-modal: 1000;
+    --gb-z-fixed: 300;
+    --gb-z-modal-backdrop: 400;
+    --gb-z-modal: 500;
+    --gb-z-popover: 600;
+    --gb-z-tooltip: 700;
 
     // Component specific
     --gb-sidebar-width: 380px;
-    --gb-header-height: 60px;
+    --gb-header-height: 56px;
 }
