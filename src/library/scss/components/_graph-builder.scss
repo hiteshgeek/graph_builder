@@ -46,6 +46,32 @@
   gap: var(--gb-spacing-lg);
 }
 
+// New Graph button (shown when editing)
+.gb-new-graph-btn {
+  @include button-reset;
+  @include flex-center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: var(--gb-font-size-xs);
+  font-weight: 500;
+  color: var(--gb-text-secondary);
+  background: transparent;
+  border: 1px solid var(--gb-border);
+  border-radius: var(--gb-radius-sm);
+  @include transition-fast;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover {
+    color: var(--gb-primary);
+    border-color: var(--gb-primary);
+    background: rgba(79, 70, 229, 0.05);
+  }
+}
+
 .gb-header-types {
   @include flex-center;
 }

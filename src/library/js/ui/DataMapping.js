@@ -67,7 +67,11 @@ class DataMapping extends BaseComponent {
             label: 'X-Axis (Category)',
             value: mapping.xAxis || this.columns[0] || '',
             selectOptions: [{ value: '', label: '-- Select Column --' }, ...columnOptions],
-            onChange: (value) => this.updateMapping({ xAxis: value })
+            onChange: (value) => {
+                this.updateMapping({ xAxis: value });
+                // Re-render to update Y-axis options (exclude newly selected X-axis)
+                this.renderControls();
+            }
         });
 
         // Y-Axis multi-select (checkboxes)
@@ -195,6 +199,11 @@ class DataMapping extends BaseComponent {
     }
 
     onChartTypeChanged() {
+        // When switching chart types, re-auto-set mapping if columns exist
+        // This ensures proper xAxis/yAxis or nameField/valueField based on chart type
+        if (this.columns.length > 0) {
+            stateManager.autoSetDataMapping(this.columns);
+        }
         this.renderControls();
     }
 

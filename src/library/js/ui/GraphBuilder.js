@@ -781,6 +781,62 @@ class GraphBuilder extends BaseComponent {
         if (logo) {
             logo.innerHTML = `Graph Builder <span class="gb-editing-indicator">Editing: ${graphName}</span>`;
         }
+
+        // Add "New Graph" button to header actions
+        const headerActions = this.element.querySelector('.gb-header-actions');
+        if (headerActions && !headerActions.querySelector('.gb-new-graph-btn')) {
+            const newGraphBtn = document.createElement('button');
+            newGraphBtn.className = 'gb-new-graph-btn';
+            newGraphBtn.title = 'Create New Graph';
+            newGraphBtn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                    <path d="M12 5v14M5 12h14"/>
+                </svg>
+                <span>New</span>
+            `;
+            newGraphBtn.addEventListener('click', () => this.createNewGraph());
+            // Insert at the beginning of header actions
+            headerActions.insertBefore(newGraphBtn, headerActions.firstChild);
+        }
+    }
+
+    createNewGraph() {
+        // Clear editing state and reset to blank graph
+        this.editingGraph = null;
+        window.GRAPH_BUILDER_EDIT_ID = null;
+
+        // Reset logo
+        const logo = this.element.querySelector('.gb-logo');
+        if (logo) {
+            logo.innerHTML = 'Graph Builder';
+        }
+
+        // Remove the New Graph button
+        const newGraphBtn = this.element.querySelector('.gb-new-graph-btn');
+        if (newGraphBtn) {
+            newGraphBtn.remove();
+        }
+
+        // Clear state - reset everything to defaults
+        stateManager.resetState();
+
+        // Clear data source editor
+        if (this.dataSourceEditor) {
+            this.dataSourceEditor.setDataSourceConfig({ type: 'sql', query: '' });
+        }
+
+        // Update URL without reload (remove edit parameter)
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('edit')) {
+            url.searchParams.delete('edit');
+            window.history.pushState({}, '', url);
+        }
+        // Handle urlq=graph/edit/X format
+        const urlq = url.searchParams.get('urlq');
+        if (urlq && urlq.startsWith('graph/edit/')) {
+            url.searchParams.set('urlq', 'graph/view');
+            window.history.pushState({}, '', url);
+        }
     }
 
     setupResizeHandler() {

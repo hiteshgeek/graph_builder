@@ -950,7 +950,7 @@ return [
                 <a href="<?= get_base_path() ?>/usage/" class="usage-back-link">
                     View Usage Examples
                 </a>
-                <a href="<?= get_base_path() ?>/graphs/" class="usage-back-link">
+                <a href="<?= get_base_path() ?>/?urlq=graph/list" class="usage-back-link">
                     Saved Graphs
                 </a>
             </div>

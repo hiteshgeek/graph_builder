@@ -159,28 +159,44 @@ class StateManager {
         const data = this.state.data;
         let nameField = columns[0];
         let valueField = columns[1] || null;
+        let xAxis = columns[0];
+        let yAxis = columns.slice(1);
 
-        // For pie charts, detect which column has numeric values vs text labels
+        // Detect which columns are numeric vs text based on actual data
         if (data && data.length > 0 && columns.length >= 2) {
-            const firstRowFirstCol = data[0][columns[0]];
-            const firstRowSecondCol = data[0][columns[1]];
+            const numericColumns = [];
+            const textColumns = [];
 
-            // Check if first column is numeric and second is text
-            const firstIsNumeric = typeof firstRowFirstCol === 'number' ||
-                (!isNaN(parseFloat(firstRowFirstCol)) && isFinite(firstRowFirstCol));
-            const secondIsNumeric = typeof firstRowSecondCol === 'number' ||
-                (!isNaN(parseFloat(firstRowSecondCol)) && isFinite(firstRowSecondCol));
+            columns.forEach(col => {
+                const value = data[0][col];
+                const isNumeric = typeof value === 'number' ||
+                    (!isNaN(parseFloat(value)) && isFinite(value));
+                if (isNumeric) {
+                    numericColumns.push(col);
+                } else {
+                    textColumns.push(col);
+                }
+            });
 
-            // If first is numeric and second is not, swap them for pie chart mapping
-            if (firstIsNumeric && !secondIsNumeric) {
-                nameField = columns[1];
-                valueField = columns[0];
+            // For pie charts: nameField should be text, valueField should be numeric
+            if (textColumns.length > 0) {
+                nameField = textColumns[0];
+            }
+            if (numericColumns.length > 0) {
+                valueField = numericColumns[0];
+            }
+
+            // For axis charts: xAxis should be text (category), yAxis should be numeric (values)
+            if (textColumns.length > 0) {
+                xAxis = textColumns[0];
+                // Y-axis should be all numeric columns
+                yAxis = numericColumns.length > 0 ? numericColumns : columns.filter(c => c !== xAxis);
+            } else {
+                // All numeric - use first as xAxis, rest as yAxis
+                xAxis = columns[0];
+                yAxis = columns.slice(1);
             }
         }
-
-        // For axis charts, first column is typically X-axis (category), rest are Y-axis (values)
-        const xAxis = columns[0];
-        const yAxis = columns.slice(1);
 
         this.state.dataMapping = {
             xAxis,

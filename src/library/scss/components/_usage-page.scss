@@ -247,9 +247,11 @@
 
 // Data/Config section
 .usage-data {
-  padding: var(--gb-spacing-md) var(--gb-spacing-lg);
+  padding: 0;
   overflow: auto;
   max-height: 350px;
+  display: flex;
+  flex-direction: column;
 
   h4 {
     font-size: var(--gb-font-size-sm);
@@ -276,10 +278,73 @@
   }
 }
 
+// Tabbed Pane Styles
+.usage-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--gb-border-color);
+  background: var(--gb-bg-tertiary);
+}
+
+.usage-tab {
+  @include button-reset;
+  padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+  font-size: var(--gb-font-size-xs);
+  font-weight: 600;
+  color: var(--gb-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  @include transition-fast;
+
+  &:hover {
+    color: var(--gb-text-secondary);
+    background: var(--gb-bg-hover);
+  }
+
+  &--active {
+    color: var(--gb-primary);
+    border-bottom-color: var(--gb-primary);
+    background: var(--gb-bg-secondary);
+
+    &:hover {
+      color: var(--gb-primary);
+      background: var(--gb-bg-secondary);
+    }
+  }
+}
+
+.usage-tab-content {
+  display: none;
+  padding: var(--gb-spacing-md) var(--gb-spacing-lg);
+  flex: 1;
+  overflow: auto;
+
+  &--active {
+    display: block;
+  }
+
+  pre {
+    margin: 0;
+    padding: var(--gb-spacing-sm) var(--gb-spacing-md);
+    background: var(--gb-bg-tertiary);
+    border-radius: var(--gb-radius-md);
+    overflow-x: auto;
+    font-size: var(--gb-font-size-xs);
+    line-height: 1.5;
+
+    code {
+      font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Code", monospace;
+      color: var(--gb-text-primary);
+    }
+  }
+}
+
 .usage-config {
   display: flex;
   flex-wrap: wrap;
   gap: var(--gb-spacing-xs);
+  margin-top: var(--gb-spacing-md);
 }
 
 .usage-config-item {

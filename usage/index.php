@@ -85,8 +85,12 @@ require_once __DIR__ . '/../includes/functions.php';
                     <div class="usage-example-content">
                         <div class="usage-chart" id="line-basic"></div>
                         <div class="usage-data">
-                            <h4>Data Format</h4>
-                            <pre><code class="language-json">[
+                            <div class="usage-tabs">
+                                <button class="usage-tab usage-tab--active" data-tab="data">Data</button>
+                                <button class="usage-tab" data-tab="sql">SQL</button>
+                            </div>
+                            <div class="usage-tab-content usage-tab-content--active" data-tab-content="data">
+                                <pre><code class="language-json">[
   { "month": "Jan", "sales": 120 },
   { "month": "Feb", "sales": 150 },
   { "month": "Mar", "sales": 180 },
@@ -94,9 +98,19 @@ require_once __DIR__ . '/../includes/functions.php';
   { "month": "May", "sales": 200 },
   { "month": "Jun", "sales": 220 }
 ]</code></pre>
-                            <div class="usage-config">
-                                <span class="usage-config-item"><span class="config-label">X-Axis:</span> <span class="config-value">month</span></span>
-                                <span class="usage-config-item"><span class="config-label">Y-Axis:</span> <span class="config-value">sales</span></span>
+                                <div class="usage-config">
+                                    <span class="usage-config-item"><span class="config-label">X-Axis:</span> <span class="config-value">month</span></span>
+                                    <span class="usage-config-item"><span class="config-label">Y-Axis:</span> <span class="config-value">sales</span></span>
+                                </div>
+                            </div>
+                            <div class="usage-tab-content" data-tab-content="sql">
+                                <pre><code class="language-sql">SELECT
+    DATE_FORMAT(order_date, '%b') AS month,
+    SUM(amount) AS sales
+FROM orders
+WHERE YEAR(order_date) = 2024
+GROUP BY MONTH(order_date)
+ORDER BY MONTH(order_date)</code></pre>
                             </div>
                         </div>
                     </div>
@@ -108,8 +122,12 @@ require_once __DIR__ . '/../includes/functions.php';
                     <div class="usage-example-content">
                         <div class="usage-chart" id="line-multi"></div>
                         <div class="usage-data">
-                            <h4>Data Format</h4>
-                            <pre><code class="language-json">[
+                            <div class="usage-tabs">
+                                <button class="usage-tab usage-tab--active" data-tab="data">Data</button>
+                                <button class="usage-tab" data-tab="sql">SQL</button>
+                            </div>
+                            <div class="usage-tab-content usage-tab-content--active" data-tab-content="data">
+                                <pre><code class="language-json">[
   { "month": "Jan", "sales": 120, "revenue": 80, "profit": 40 },
   { "month": "Feb", "sales": 150, "revenue": 95, "profit": 55 },
   { "month": "Mar", "sales": 180, "revenue": 120, "profit": 60 },
@@ -117,9 +135,21 @@ require_once __DIR__ . '/../includes/functions.php';
   { "month": "May", "sales": 200, "revenue": 150, "profit": 50 },
   { "month": "Jun", "sales": 220, "revenue": 170, "profit": 50 }
 ]</code></pre>
-                            <div class="usage-config">
-                                <span class="usage-config-item"><span class="config-label">X-Axis:</span> <span class="config-value">month</span></span>
-                                <span class="usage-config-item"><span class="config-label">Y-Axis:</span> <span class="config-value">sales, revenue, profit</span></span>
+                                <div class="usage-config">
+                                    <span class="usage-config-item"><span class="config-label">X-Axis:</span> <span class="config-value">month</span></span>
+                                    <span class="usage-config-item"><span class="config-label">Y-Axis:</span> <span class="config-value">sales, revenue, profit</span></span>
+                                </div>
+                            </div>
+                            <div class="usage-tab-content" data-tab-content="sql">
+                                <pre><code class="language-sql">SELECT
+    DATE_FORMAT(order_date, '%b') AS month,
+    COUNT(*) AS sales,
+    SUM(total_amount) AS revenue,
+    SUM(total_amount - cost) AS profit
+FROM orders
+WHERE YEAR(order_date) = 2024
+GROUP BY MONTH(order_date)
+ORDER BY MONTH(order_date)</code></pre>
                             </div>
                         </div>
                     </div>
@@ -131,17 +161,42 @@ require_once __DIR__ . '/../includes/functions.php';
                     <div class="usage-example-content">
                         <div class="usage-chart" id="line-area"></div>
                         <div class="usage-data">
-                            <h4>Configuration</h4>
-                            <pre><code class="language-json">{
+                            <div class="usage-tabs">
+                                <button class="usage-tab usage-tab--active" data-tab="data">Data</button>
+                                <button class="usage-tab" data-tab="sql">SQL</button>
+                                <button class="usage-tab" data-tab="config">Config</button>
+                            </div>
+                            <div class="usage-tab-content usage-tab-content--active" data-tab-content="data">
+                                <pre><code class="language-json">[
+  { "month": "Jan", "sales": 120 },
+  { "month": "Feb", "sales": 150 },
+  { "month": "Mar", "sales": 180 },
+  { "month": "Apr", "sales": 140 },
+  { "month": "May", "sales": 200 },
+  { "month": "Jun", "sales": 220 }
+]</code></pre>
+                            </div>
+                            <div class="usage-tab-content" data-tab-content="sql">
+                                <pre><code class="language-sql">SELECT
+    DATE_FORMAT(created_at, '%b') AS month,
+    SUM(amount) AS sales
+FROM transactions
+WHERE YEAR(created_at) = 2024
+GROUP BY MONTH(created_at)
+ORDER BY MONTH(created_at)</code></pre>
+                            </div>
+                            <div class="usage-tab-content" data-tab-content="config">
+                                <pre><code class="language-json">{
   "smooth": true,
   "showArea": true,
   "showSymbol": true,
   "symbolSize": 8,
   "lineWidth": 3
 }</code></pre>
-                            <div class="usage-config">
-                                <span class="usage-config-item"><span class="config-label">Smooth Curve:</span> <span class="config-value">On</span></span>
-                                <span class="usage-config-item"><span class="config-label">Area Fill:</span> <span class="config-value">On</span></span>
+                                <div class="usage-config">
+                                    <span class="usage-config-item"><span class="config-label">Smooth:</span> <span class="config-value">On</span></span>
+                                    <span class="usage-config-item"><span class="config-label">Area Fill:</span> <span class="config-value">On</span></span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -153,8 +208,12 @@ require_once __DIR__ . '/../includes/functions.php';
                     <div class="usage-example-content">
                         <div class="usage-chart" id="line-step"></div>
                         <div class="usage-data">
-                            <h4>Data Format</h4>
-                            <pre><code class="language-json">[
+                            <div class="usage-tabs">
+                                <button class="usage-tab usage-tab--active" data-tab="data">Data</button>
+                                <button class="usage-tab" data-tab="sql">SQL</button>
+                            </div>
+                            <div class="usage-tab-content usage-tab-content--active" data-tab-content="data">
+                                <pre><code class="language-json">[
   { "time": "00:00", "users": 10 },
   { "time": "04:00", "users": 5 },
   { "time": "08:00", "users": 25 },
@@ -163,8 +222,18 @@ require_once __DIR__ . '/../includes/functions.php';
   { "time": "20:00", "users": 60 },
   { "time": "24:00", "users": 15 }
 ]</code></pre>
-                            <div class="usage-config">
-                                <span class="usage-config-item"><span class="config-label">Step Line:</span> <span class="config-value">middle</span></span>
+                                <div class="usage-config">
+                                    <span class="usage-config-item"><span class="config-label">Step Line:</span> <span class="config-value">middle</span></span>
+                                </div>
+                            </div>
+                            <div class="usage-tab-content" data-tab-content="sql">
+                                <pre><code class="language-sql">SELECT
+    CONCAT(LPAD(HOUR(login_time), 2, '0'), ':00') AS time,
+    COUNT(DISTINCT user_id) AS users
+FROM user_sessions
+WHERE DATE(login_time) = CURDATE()
+GROUP BY HOUR(login_time)
+ORDER BY HOUR(login_time)</code></pre>
                             </div>
                         </div>
                     </div>
@@ -184,16 +253,31 @@ require_once __DIR__ . '/../includes/functions.php';
                     <div class="usage-example-content">
                         <div class="usage-chart" id="bar-basic"></div>
                         <div class="usage-data">
-                            <h4>Data Format</h4>
-                            <pre><code class="language-json">[
+                            <div class="usage-tabs">
+                                <button class="usage-tab usage-tab--active" data-tab="data">Data</button>
+                                <button class="usage-tab" data-tab="sql">SQL</button>
+                            </div>
+                            <div class="usage-tab-content usage-tab-content--active" data-tab-content="data">
+                                <pre><code class="language-json">[
   { "category": "Product A", "sales": 45 },
   { "category": "Product B", "sales": 30 },
   { "category": "Product C", "sales": 65 },
   { "category": "Product D", "sales": 50 }
 ]</code></pre>
-                            <div class="usage-config">
-                                <span class="usage-config-item"><span class="config-label">X-Axis:</span> <span class="config-value">category</span></span>
-                                <span class="usage-config-item"><span class="config-label">Y-Axis:</span> <span class="config-value">sales</span></span>
+                                <div class="usage-config">
+                                    <span class="usage-config-item"><span class="config-label">X-Axis:</span> <span class="config-value">category</span></span>
+                                    <span class="usage-config-item"><span class="config-label">Y-Axis:</span> <span class="config-value">sales</span></span>
+                                </div>
+                            </div>
+                            <div class="usage-tab-content" data-tab-content="sql">
+                                <pre><code class="language-sql">SELECT
+    p.name AS category,
+    COUNT(*) AS sales
+FROM order_items oi
+JOIN products p ON oi.product_id = p.id
+GROUP BY p.id, p.name
+ORDER BY sales DESC
+LIMIT 10</code></pre>
                             </div>
                         </div>
                     </div>
@@ -205,16 +289,32 @@ require_once __DIR__ . '/../includes/functions.php';
                     <div class="usage-example-content">
                         <div class="usage-chart" id="bar-grouped"></div>
                         <div class="usage-data">
-                            <h4>Data Format</h4>
-                            <pre><code class="language-json">[
+                            <div class="usage-tabs">
+                                <button class="usage-tab usage-tab--active" data-tab="data">Data</button>
+                                <button class="usage-tab" data-tab="sql">SQL</button>
+                            </div>
+                            <div class="usage-tab-content usage-tab-content--active" data-tab-content="data">
+                                <pre><code class="language-json">[
   { "category": "Q1", "2022": 120, "2023": 150, "2024": 180 },
   { "category": "Q2", "2022": 100, "2023": 140, "2024": 160 },
   { "category": "Q3", "2022": 140, "2023": 160, "2024": 200 },
   { "category": "Q4", "2022": 180, "2023": 200, "2024": 240 }
 ]</code></pre>
-                            <div class="usage-config">
-                                <span class="usage-config-item"><span class="config-label">X-Axis:</span> <span class="config-value">category</span></span>
-                                <span class="usage-config-item"><span class="config-label">Y-Axis:</span> <span class="config-value">2022, 2023, 2024</span></span>
+                                <div class="usage-config">
+                                    <span class="usage-config-item"><span class="config-label">X-Axis:</span> <span class="config-value">category</span></span>
+                                    <span class="usage-config-item"><span class="config-label">Y-Axis:</span> <span class="config-value">2022, 2023, 2024</span></span>
+                                </div>
+                            </div>
+                            <div class="usage-tab-content" data-tab-content="sql">
+                                <pre><code class="language-sql">SELECT
+    CONCAT('Q', QUARTER(order_date)) AS category,
+    SUM(CASE WHEN YEAR(order_date) = 2022 THEN amount ELSE 0 END) AS `2022`,
+    SUM(CASE WHEN YEAR(order_date) = 2023 THEN amount ELSE 0 END) AS `2023`,
+    SUM(CASE WHEN YEAR(order_date) = 2024 THEN amount ELSE 0 END) AS `2024`
+FROM orders
+WHERE YEAR(order_date) BETWEEN 2022 AND 2024
+GROUP BY QUARTER(order_date)
+ORDER BY QUARTER(order_date)</code></pre>
                             </div>
                         </div>
                     </div>
@@ -226,15 +326,40 @@ require_once __DIR__ . '/../includes/functions.php';
                     <div class="usage-example-content">
                         <div class="usage-chart" id="bar-stacked"></div>
                         <div class="usage-data">
-                            <h4>Configuration</h4>
-                            <pre><code class="language-json">{
+                            <div class="usage-tabs">
+                                <button class="usage-tab usage-tab--active" data-tab="data">Data</button>
+                                <button class="usage-tab" data-tab="sql">SQL</button>
+                                <button class="usage-tab" data-tab="config">Config</button>
+                            </div>
+                            <div class="usage-tab-content usage-tab-content--active" data-tab-content="data">
+                                <pre><code class="language-json">[
+  { "category": "Q1", "2022": 120, "2023": 150, "2024": 180 },
+  { "category": "Q2", "2022": 100, "2023": 140, "2024": 160 },
+  { "category": "Q3", "2022": 140, "2023": 160, "2024": 200 },
+  { "category": "Q4", "2022": 180, "2023": 200, "2024": 240 }
+]</code></pre>
+                            </div>
+                            <div class="usage-tab-content" data-tab-content="sql">
+                                <pre><code class="language-sql">SELECT
+    CONCAT('Q', QUARTER(order_date)) AS category,
+    SUM(CASE WHEN YEAR(order_date) = 2022 THEN amount ELSE 0 END) AS `2022`,
+    SUM(CASE WHEN YEAR(order_date) = 2023 THEN amount ELSE 0 END) AS `2023`,
+    SUM(CASE WHEN YEAR(order_date) = 2024 THEN amount ELSE 0 END) AS `2024`
+FROM orders
+WHERE YEAR(order_date) BETWEEN 2022 AND 2024
+GROUP BY QUARTER(order_date)
+ORDER BY QUARTER(order_date)</code></pre>
+                            </div>
+                            <div class="usage-tab-content" data-tab-content="config">
+                                <pre><code class="language-json">{
   "stacked": true,
   "barWidth": 50,
   "borderRadius": 4
 }</code></pre>
-                            <div class="usage-config">
-                                <span class="usage-config-item"><span class="config-label">Stacked:</span> <span class="config-value">On</span></span>
-                                <span class="usage-config-item"><span class="config-label">Border Radius:</span> <span class="config-value">4</span></span>
+                                <div class="usage-config">
+                                    <span class="usage-config-item"><span class="config-label">Stacked:</span> <span class="config-value">On</span></span>
+                                    <span class="usage-config-item"><span class="config-label">Border Radius:</span> <span class="config-value">4</span></span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -246,17 +371,29 @@ require_once __DIR__ . '/../includes/functions.php';
                     <div class="usage-example-content">
                         <div class="usage-chart" id="bar-horizontal"></div>
                         <div class="usage-data">
-                            <h4>Data Format</h4>
-                            <pre><code class="language-json">[
+                            <div class="usage-tabs">
+                                <button class="usage-tab usage-tab--active" data-tab="data">Data</button>
+                                <button class="usage-tab" data-tab="sql">SQL</button>
+                            </div>
+                            <div class="usage-tab-content usage-tab-content--active" data-tab-content="data">
+                                <pre><code class="language-json">[
   { "country": "USA", "population": 331 },
   { "country": "China", "population": 1411 },
   { "country": "India", "population": 1380 },
   { "country": "Indonesia", "population": 273 },
   { "country": "Brazil", "population": 212 }
 ]</code></pre>
-                            <div class="usage-config">
-                                <span class="usage-config-item"><span class="config-label">Horizontal:</span> <span class="config-value">On</span></span>
-                                <span class="usage-config-item"><span class="config-label">X-Axis Label:</span> <span class="config-value">Population (millions)</span></span>
+                                <div class="usage-config">
+                                    <span class="usage-config-item"><span class="config-label">Horizontal:</span> <span class="config-value">On</span></span>
+                                </div>
+                            </div>
+                            <div class="usage-tab-content" data-tab-content="sql">
+                                <pre><code class="language-sql">SELECT
+    name AS country,
+    population
+FROM countries
+ORDER BY population DESC
+LIMIT 5</code></pre>
                             </div>
                         </div>
                     </div>
@@ -276,17 +413,32 @@ require_once __DIR__ . '/../includes/functions.php';
                     <div class="usage-example-content">
                         <div class="usage-chart" id="pie-basic"></div>
                         <div class="usage-data">
-                            <h4>Data Format</h4>
-                            <pre><code class="language-json">[
+                            <div class="usage-tabs">
+                                <button class="usage-tab usage-tab--active" data-tab="data">Data</button>
+                                <button class="usage-tab" data-tab="sql">SQL</button>
+                            </div>
+                            <div class="usage-tab-content usage-tab-content--active" data-tab-content="data">
+                                <pre><code class="language-json">[
   { "name": "Electronics", "value": 335 },
   { "name": "Clothing", "value": 210 },
   { "name": "Food", "value": 180 },
   { "name": "Books", "value": 125 },
   { "name": "Other", "value": 90 }
 ]</code></pre>
-                            <div class="usage-config">
-                                <span class="usage-config-item"><span class="config-label">Name Field:</span> <span class="config-value">name</span></span>
-                                <span class="usage-config-item"><span class="config-label">Value Field:</span> <span class="config-value">value</span></span>
+                                <div class="usage-config">
+                                    <span class="usage-config-item"><span class="config-label">Name Field:</span> <span class="config-value">name</span></span>
+                                    <span class="usage-config-item"><span class="config-label">Value Field:</span> <span class="config-value">value</span></span>
+                                </div>
+                            </div>
+                            <div class="usage-tab-content" data-tab-content="sql">
+                                <pre><code class="language-sql">SELECT
+    c.name AS name,
+    SUM(oi.quantity * oi.price) AS value
+FROM order_items oi
+JOIN products p ON oi.product_id = p.id
+JOIN categories c ON p.category_id = c.id
+GROUP BY c.id, c.name
+ORDER BY value DESC</code></pre>
                             </div>
                         </div>
                     </div>
@@ -298,16 +450,40 @@ require_once __DIR__ . '/../includes/functions.php';
                     <div class="usage-example-content">
                         <div class="usage-chart" id="pie-donut"></div>
                         <div class="usage-data">
-                            <h4>Configuration</h4>
-                            <pre><code class="language-json">{
+                            <div class="usage-tabs">
+                                <button class="usage-tab usage-tab--active" data-tab="data">Data</button>
+                                <button class="usage-tab" data-tab="sql">SQL</button>
+                                <button class="usage-tab" data-tab="config">Config</button>
+                            </div>
+                            <div class="usage-tab-content usage-tab-content--active" data-tab-content="data">
+                                <pre><code class="language-json">[
+  { "name": "Electronics", "value": 335 },
+  { "name": "Clothing", "value": 210 },
+  { "name": "Food", "value": 180 },
+  { "name": "Books", "value": 125 },
+  { "name": "Other", "value": 90 }
+]</code></pre>
+                            </div>
+                            <div class="usage-tab-content" data-tab-content="sql">
+                                <pre><code class="language-sql">SELECT
+    status AS name,
+    COUNT(*) AS value
+FROM orders
+WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+GROUP BY status
+ORDER BY value DESC</code></pre>
+                            </div>
+                            <div class="usage-tab-content" data-tab-content="config">
+                                <pre><code class="language-json">{
   "radius": 70,
   "innerRadius": 40,
   "showLabels": true,
   "labelPosition": "outside"
 }</code></pre>
-                            <div class="usage-config">
-                                <span class="usage-config-item"><span class="config-label">Inner Radius:</span> <span class="config-value">40%</span></span>
-                                <span class="usage-config-item"><span class="config-label">Outer Radius:</span> <span class="config-value">70%</span></span>
+                                <div class="usage-config">
+                                    <span class="usage-config-item"><span class="config-label">Inner Radius:</span> <span class="config-value">40%</span></span>
+                                    <span class="usage-config-item"><span class="config-label">Outer Radius:</span> <span class="config-value">70%</span></span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -319,16 +495,40 @@ require_once __DIR__ . '/../includes/functions.php';
                     <div class="usage-example-content">
                         <div class="usage-chart" id="pie-rose"></div>
                         <div class="usage-data">
-                            <h4>Configuration</h4>
-                            <pre><code class="language-json">{
+                            <div class="usage-tabs">
+                                <button class="usage-tab usage-tab--active" data-tab="data">Data</button>
+                                <button class="usage-tab" data-tab="sql">SQL</button>
+                                <button class="usage-tab" data-tab="config">Config</button>
+                            </div>
+                            <div class="usage-tab-content usage-tab-content--active" data-tab-content="data">
+                                <pre><code class="language-json">[
+  { "name": "Electronics", "value": 335 },
+  { "name": "Clothing", "value": 210 },
+  { "name": "Food", "value": 180 },
+  { "name": "Books", "value": 125 },
+  { "name": "Other", "value": 90 }
+]</code></pre>
+                            </div>
+                            <div class="usage-tab-content" data-tab-content="sql">
+                                <pre><code class="language-sql">SELECT
+    region AS name,
+    SUM(revenue) AS value
+FROM sales_by_region
+WHERE year = 2024
+GROUP BY region
+ORDER BY value DESC</code></pre>
+                            </div>
+                            <div class="usage-tab-content" data-tab-content="config">
+                                <pre><code class="language-json">{
   "roseType": "radius",
   "radius": 65,
   "borderRadius": 5,
   "padAngle": 2
 }</code></pre>
-                            <div class="usage-config">
-                                <span class="usage-config-item"><span class="config-label">Rose Type:</span> <span class="config-value">radius</span></span>
-                                <span class="usage-config-item"><span class="config-label">Pad Angle:</span> <span class="config-value">2</span></span>
+                                <div class="usage-config">
+                                    <span class="usage-config-item"><span class="config-label">Rose Type:</span> <span class="config-value">radius</span></span>
+                                    <span class="usage-config-item"><span class="config-label">Pad Angle:</span> <span class="config-value">2</span></span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -340,17 +540,31 @@ require_once __DIR__ . '/../includes/functions.php';
                     <div class="usage-example-content">
                         <div class="usage-chart" id="pie-styled"></div>
                         <div class="usage-data">
-                            <h4>Data Format</h4>
-                            <pre><code class="language-json">[
+                            <div class="usage-tabs">
+                                <button class="usage-tab usage-tab--active" data-tab="data">Data</button>
+                                <button class="usage-tab" data-tab="sql">SQL</button>
+                            </div>
+                            <div class="usage-tab-content usage-tab-content--active" data-tab-content="data">
+                                <pre><code class="language-json">[
   { "browser": "Chrome", "share": 65 },
   { "browser": "Safari", "share": 19 },
   { "browser": "Firefox", "share": 8 },
   { "browser": "Edge", "share": 5 },
   { "browser": "Other", "share": 3 }
 ]</code></pre>
-                            <div class="usage-config">
-                                <span class="usage-config-item"><span class="config-label">Border Radius:</span> <span class="config-value">8</span></span>
-                                <span class="usage-config-item"><span class="config-label">Pad Angle:</span> <span class="config-value">3</span></span>
+                                <div class="usage-config">
+                                    <span class="usage-config-item"><span class="config-label">Border Radius:</span> <span class="config-value">8</span></span>
+                                    <span class="usage-config-item"><span class="config-label">Pad Angle:</span> <span class="config-value">3</span></span>
+                                </div>
+                            </div>
+                            <div class="usage-tab-content" data-tab-content="sql">
+                                <pre><code class="language-sql">SELECT
+    browser,
+    ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM page_views), 1) AS share
+FROM page_views
+WHERE visited_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+GROUP BY browser
+ORDER BY share DESC</code></pre>
                             </div>
                         </div>
                     </div>
@@ -407,7 +621,44 @@ require_once __DIR__ . '/../includes/functions.php';
     <!-- Highlight.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
     <script>
+        // Tab Switching
+        function initTabs() {
+            document.querySelectorAll('.usage-tabs').forEach(tabContainer => {
+                const tabs = tabContainer.querySelectorAll('.usage-tab');
+                const parent = tabContainer.closest('.usage-data');
+                const contents = parent.querySelectorAll('.usage-tab-content');
+
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const targetTab = tab.dataset.tab;
+
+                        // Update tab buttons
+                        tabs.forEach(t => t.classList.remove('usage-tab--active'));
+                        tab.classList.add('usage-tab--active');
+
+                        // Update content panels
+                        contents.forEach(content => {
+                            if (content.dataset.tabContent === targetTab) {
+                                content.classList.add('usage-tab-content--active');
+                            } else {
+                                content.classList.remove('usage-tab-content--active');
+                            }
+                        });
+
+                        // Re-highlight code if switching to a new tab
+                        const activeContent = parent.querySelector('.usage-tab-content--active');
+                        if (activeContent) {
+                            activeContent.querySelectorAll('pre code:not(.hljs)').forEach(block => {
+                                hljs.highlightElement(block);
+                            });
+                        }
+                    });
+                });
+            });
+        }
+
         // View Mode Controls
         const VIEW_KEY = 'graphBuilder_usageView';
         const COLS_KEY = 'graphBuilder_usageCols';
@@ -818,6 +1069,9 @@ require_once __DIR__ . '/../includes/functions.php';
 
         // Initialize on DOM ready
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize tabs
+            initTabs();
+
             // Initialize view controls
             initViewControls();
 
