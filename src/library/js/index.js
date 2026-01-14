@@ -26,7 +26,6 @@ export { ConfigFactory, CONFIG_CLASSES } from './config/ConfigFactory.js';
 export { GraphBuilder } from './ui/GraphBuilder.js';
 export { TypeSwitcher } from './ui/TypeSwitcher.js';
 export { ConfigPanel } from './ui/ConfigPanel.js';
-export { DataImporter } from './ui/DataImporter.js';
 export { QueryEditor } from './ui/QueryEditor.js';
 export { PreviewPanel } from './ui/PreviewPanel.js';
 export { ThemeSwitcher } from './ui/ThemeSwitcher.js';

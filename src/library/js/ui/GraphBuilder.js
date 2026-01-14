@@ -5,7 +5,6 @@ import { TypeSwitcher } from './TypeSwitcher.js';
 import { ConfigPanel } from './ConfigPanel.js';
 import { DataExplorer } from './DataExplorer.js';
 import { DataMapping } from './DataMapping.js';
-import { DataImporter } from './DataImporter.js';
 import { DataSourceEditor } from './DataSourceEditor.js';
 import { QueryResults } from './QueryResults.js';
 import { PreviewPanel } from './PreviewPanel.js';
@@ -31,7 +30,6 @@ class GraphBuilder extends BaseComponent {
         this.configPanel = null;
         this.dataExplorer = null;
         this.dataMapping = null;
-        this.dataImporter = null;
         this.dataSourceEditor = null;
         this.previewPanel = null;
         this.themeSwitcher = null;
@@ -177,11 +175,7 @@ class GraphBuilder extends BaseComponent {
         // Data Explorer container
         this.dataExplorerContainer = this.createElement('div', { className: 'gb-data-explorer-wrapper' });
 
-        // Data Importer container (for CSV import button)
-        this.dataImporterContainer = this.createElement('div', { className: 'gb-data-importer-wrapper' });
-
         leftSidebarContent.appendChild(this.dataExplorerContainer);
-        leftSidebarContent.appendChild(this.dataImporterContainer);
 
         this.leftSidebar.appendChild(leftSidebarHeader);
         this.leftSidebar.appendChild(leftSidebarContent);
@@ -671,10 +665,6 @@ class GraphBuilder extends BaseComponent {
         });
         this.dataSourceEditor.init();
 
-        // Data importer
-        this.dataImporter = new DataImporter(this.dataImporterContainer);
-        this.dataImporter.init();
-
         // Data explorer
         this.dataExplorer = new DataExplorer(this.dataExplorerContainer, {
             apiBase: this.options.apiBase || '',
@@ -1072,10 +1062,6 @@ class GraphBuilder extends BaseComponent {
         if (this.dataMapping) {
             this.dataMapping.destroy();
             this.dataMapping = null;
-        }
-        if (this.dataImporter) {
-            this.dataImporter.destroy();
-            this.dataImporter = null;
         }
         if (this.dataSourceEditor) {
             this.dataSourceEditor.destroy();
